@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SVG Drawing Pad</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="wrapper">
+    <h1 id="title"></h1>
+    <canvas id="canvas" width="480" height="640"></canvas>
+
+    <div class="action-bar">
+      <div id="letter-pool" class="letter-pool"></div>
+      <div id="word" class="word"></div>
+    </div>
+  </div>
+
+  <div class="menu-bg" id="menu">
+    <div class="menu">
+      <h1 class="menu__title">Start a new game.</h1>
+      <a href="index.html" id="drawBtn" class="menu__btn">Draw</a>
+      <a href="index.html" id="guessBtn" class="menu__btn">Guess</a>
+    </div>
+  </div>
+
+  <div class="menu-bg" id="gameOver">
+    <div class="menu">
+      <h1 class="menu__title">You Win!</h1>
+      <button class="menu__btn">Play Again</button>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui/1.11.2/jquery-ui.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jqueryui-touch-punch/0.2.3/jquery.ui.touch-punch.min.js"></script>
+  <script src="scripts/js.cookie.js"></script>
+  <script src="scripts/firebase.js"></script>
+  <script src="scripts/paper-full.min.js"></script>
+  <script src="scripts/script.js"></script>
+</body>
+</html>
