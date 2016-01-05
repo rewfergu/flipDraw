@@ -175,16 +175,6 @@ $(function() {
 
 
 
-
-    // *****
-    // check for player type
-    // setup paperjs for draw player
-    // *****
-
-    // $('#Drawitle').show();
-    // $('#letter-pool').hide();
-    // $('#word').hide();
-
     var tool = new Tool();
 
     tool.onMouseDown = function(event) {
@@ -196,8 +186,8 @@ $(function() {
       // Create a new path and set its stroke color to black:
       path = new Path({
         segments: [event.point],
-        strokeColor: 'black',
-        // Select the path, so we can see its segment points:
+        strokeColor: 'red',
+        strokeWidth: 3,
         fullySelected: true
       });
 

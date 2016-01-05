@@ -2,6 +2,8 @@ var gulp = require('gulp');
 var browserSync = require('browser-sync').create();
 var sass = require('gulp-sass');
 var uglify = require('gulp-uglify');
+var ghPages = require('gulp-gh-pages');
+
 
 gulp.task('browser-sync', function() {
   browserSync.init({
@@ -25,6 +27,11 @@ gulp.task('compressjs', function() {
   gulp.src('./scripts/*.js')
   //.pipe(uglify())
   .pipe(gulp.dest('./dist/scripts/'));
+});
+
+gulp.task('deploy', function() {
+  return gulp.src('./dist/**/*')
+    .pipe(ghPages());
 });
 
 gulp.task('default', ['browser-sync']);
