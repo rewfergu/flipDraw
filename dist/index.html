@@ -7,23 +7,33 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <div class="wrapper">
-    <h1 id="title"></h1>
-    <canvas id="canvas" width="480" height="640"></canvas>
-
-    <div class="action-bar">
-      <div id="letter-pool" class="letter-pool"></div>
-      <div id="word" class="word"></div>
+  <section class="screen">
+    <h1 class="screen__title">Draw Screen</h1>
+    <div class="draw screen__wrapper">
+      <h1 id="drawTitle"></h1>
+      <canvas id="drawCanvas" width="480" height="640"></canvas>
     </div>
-  </div>
+  </section>
 
-  <div class="menu-bg" id="menu">
+  <section class="screen">
+    <h1 class="screen__title">Guess Screen</h1>
+    <div class="guess screen__wrapper">
+      <canvas id="guessCanvas" width="480" height="640"></canvas>
+
+      <div class="action-bar">
+        <div id="letter-pool" class="letter-pool"></div>
+        <div id="word" class="word"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- <div class="menu-bg" id="menu">
     <div class="menu">
       <h1 class="menu__title">Start a new game.</h1>
       <a href="index.html" id="drawBtn" class="menu__btn">Draw</a>
       <a href="index.html" id="guessBtn" class="menu__btn">Guess</a>
     </div>
-  </div>
+  </div> -->
 
   <div class="menu-bg" id="gameOver">
     <div class="menu">

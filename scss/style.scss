@@ -6,14 +6,24 @@ body {
   background: #ccc;
   padding: 0;
   font-family: sans-serif;
+  display: flex;
+  justify-content: center;
 }
-.wrapper {
-  max-width: 400px;
+
+.screen {
+  margin: 0 20px;
+}
+.screen__title {
+
+}
+.screen__wrapper {
+  //max-width: 400px;
   margin: 0 auto;
   background: white;
+  position: relative;
 }
-#title {
-  position: fixed;
+#drawTitle {
+  position: absolute;
   z-index: 2;
   top: 0;
   right: 0;
@@ -33,13 +43,13 @@ body {
 // }
 
 canvas {
-  position: fixed;
+  //position: fixed;
   background: white;
   z-index: 1;
 }
 
 .action-bar {
-  position: fixed;
+  position: absolute;
   z-index: 2;
   bottom: 0;
   left: 0;
