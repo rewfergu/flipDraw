@@ -19,7 +19,8 @@ body {
 .screen__wrapper {
   //max-width: 400px;
   margin: 0 auto;
-  background: white;
+  background: #fff url('img/grid.png');
+  background-size: 26px 26px;
   position: relative;
 }
 #drawTitle {
@@ -44,7 +45,6 @@ body {
 
 canvas {
   //position: fixed;
-  background: white;
   z-index: 1;
 }
 

@@ -101,7 +101,8 @@ body {
 
 .screen__wrapper {
   margin: 0 auto;
-  background: white;
+  background: #fff url("img/grid.png");
+  background-size: 26px 26px;
   position: relative; }
 
 #drawTitle {
@@ -116,7 +117,6 @@ body {
 
 /* Scale canvas with resize attribute to full size */
 canvas {
-  background: white;
   z-index: 1; }
 
 .action-bar {
