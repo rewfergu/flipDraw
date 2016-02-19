@@ -96,14 +96,14 @@ $(function() {
     pathReferenceGuess[snapshot.key()] = new scope.guess.Path();
     console.log(pathReferenceGuess[snapshot.key()]);
     pathReferenceGuess[snapshot.key()].pathData = firebaseData.path;
-    pathReferenceGuess[snapshot.key()].strokeColor = 'red';
+    pathReferenceGuess[snapshot.key()].strokeColor = '#b83e3e';
     pathReferenceGuess[snapshot.key()].strokeWidth = 3;
     scope.guess.view.update();
 
     paper = scope.draw;
     pathReferenceDraw[snapshot.key()] = new scope.draw.Path();
     pathReferenceDraw[snapshot.key()].pathData = firebaseData.path;
-    pathReferenceDraw[snapshot.key()].strokeColor = 'red';
+    pathReferenceDraw[snapshot.key()].strokeColor = '#b83e3e';
     pathReferenceDraw[snapshot.key()].strokeWidth = 3;
     scope.draw.view.update();
   });
@@ -186,7 +186,7 @@ $(function() {
       // Create a new path and set its stroke color to black:
       path = new Path({
         segments: [event.point],
-        strokeColor: 'red',
+        strokeColor: '#b83e3e',
         strokeWidth: 3,
         fullySelected: true
       });
