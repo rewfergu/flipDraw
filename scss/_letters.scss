@@ -3,30 +3,28 @@
   justify-content: left;
   flex-wrap: wrap;
   border-radius: 10px;
-  background: rgba(0,0,0,0.1);
-  margin-bottom: 1rem;
+  margin-bottom: 0.5rem;
   .letter {
     width: 1rem;
     padding: 1rem;
     border: 1px solid #ccc;
-    margin: 10px;
+    margin: 4px;
     text-align: center;
     border-radius: 5px;
     background: white;
   }
 }
+
 .word {
-  background: rgba(0,0,0,0.1);
   display: flex;
   border-radius: 10px;
   .position {
     display: block;
     position: relative;
-    background: rgba(0,0,0,0.1);
-    //flex-grow: 1;
+    background: rgba(0, 0, 0, 0.1); //flex-grow: 1;
     padding: 1rem;
-    border: 1px solid #ccc;
-    margin: 10px;
+    border: 1px solid #a5a5a5;
+    margin: 4px;
     text-align: center;
     border-radius: 5px;
     height: 1rem;
@@ -37,7 +35,7 @@
       top: -1px;
       width: 1rem;
       padding: 1rem;
-      border: 1px solid #ccc;
+      border: 1px solid #a5a5a5;
       text-align: center;
       border-radius: 5px;
       background: white;
@@ -46,14 +44,13 @@
   .position--hover {
     border: 1px dashed black;
   }
-  .position--correct {
-
-  }
+  .position--correct {}
   .position--incorrect {
     animation-duration: 1s;
     animation-name: showError;
   }
 }
+
 .word--correct {
   background: rgba(0, 115, 0, 0.3);
 }
@@ -61,10 +58,10 @@
 @keyframes showError {
   from {
     border: 1px solid red;
-    background: rgba(150,0,0,0.3);
+    background: rgba(150, 0, 0, 0.3);
   }
   to {
-    border: 1px solid #ccc;
-    background: rgba(0,0,0,0.1);
+    border: 1px solid #a5a5a5;
+    background: rgba(0, 0, 0, 0.1);
   }
 }

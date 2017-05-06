@@ -88,7 +88,7 @@ $(function() {
     var firebaseData = snapshot.val();
     pathReference[snapshot.key] = new Path();
     pathReference[snapshot.key].pathData = firebaseData.path;
-    pathReference[snapshot.key].strokeColor = 'red';
+    pathReference[snapshot.key].strokeColor = '#3b6cb7';
     pathReference[snapshot.key].strokeWidth = 3;
     view.update();
   });
@@ -414,7 +414,7 @@ function initApp() {
       document.getElementById('quickstart-sign-in').textContent = 'Sign out';
       document.getElementById('quickstart-account-details').textContent = JSON.stringify(user, null, '  ');
       console.log('auth data', user.photoURL);
-      document.getElementById('userStatus').innerHTML = `<img src="${user.photoURL}" />`;
+      document.querySelector('.userImage').innerHTML = `<img src="${user.photoURL}" />`;
       // [END_EXCLUDE]
     } else {
       // User is signed out.
