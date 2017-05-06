@@ -1,0 +1,23 @@
+{
+  "name": "flipdraw",
+  "description": "collaborative drawing game in javascript",
+  "main": "index.html",
+  "authors": [
+    "Robert Ferguson <rob@rewferguson.com>"
+  ],
+  "license": "ISC",
+  "homepage": "https://github.com/rewfergu/flipDraw",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "firebase": "^3.9.0",
+    "paper": "~0.9.25",
+    "js-cookie": "~2.1.0"
+  }
+}

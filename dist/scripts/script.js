@@ -1,5 +1,5 @@
 // game setup variables
-var FIREBASE_BASE = new Firebase('https://svgpad.firebaseio.com/');
+var FIREBASE_BASE = firebase;
 var firebaseRef;
 var firebasePath;
 var path;
@@ -8,7 +8,7 @@ var firebasePathsRef;
 
 var getUrlVars = function() {
   var vars = {};
-  var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m,key,value) {
+  var parts = window.location.href.replace(/[?&]+([^=&]+)=([^&]*)/gi, function(m, key, value) {
     vars[key] = value;
   });
 
@@ -25,6 +25,8 @@ if (Cookies.get('player')) {
   player = getUrlVars()['player'];
 }
 
+document.querySelector('.wrapper').style.maxWidth = window.innerHeight / 1.3 + 'px';
+
 // word tile variables
 var wordlist = [
   "cat",
@@ -36,7 +38,7 @@ var wordlist = [
   "snail",
 ];
 
-var title = document.getElementById('title');
+var title = document.getElementById('drawingTitle');
 var letterPool = document.getElementById('letter-pool');
 var word = document.getElementById('word');
 var currentPosition;
@@ -49,8 +51,8 @@ var selection;
 // setup paper.js
 paper.install(window);
 window.canvas = document.getElementById('canvas');
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+// canvas.width = window.innerWidth;
+// canvas.height = window.innerHeight;
 paper.setup(canvas);
 
 // jQuery ready
@@ -58,14 +60,17 @@ $(function() {
 
   // check for exising game ID
   if (!gameId) {
+    firebaseRef = FIREBASE_BASE.database().ref().push();
+    console.log('pushing new game id', firebaseRef.key);
+    var path = 'index.html?id=' + firebaseRef.key;
+    //window.location = path;
+
     $('#menu').show();
-    firebaseRef = FIREBASE_BASE.push();
-    var path = 'index.html?id=' + firebaseRef.key();
     $('#drawBtn').attr('href', path);
     $('#guessBtn').attr('href', path);
   } else {
     $('#menu').hide();
-    firebaseRef = FIREBASE_BASE.child(gameId);
+    firebaseRef = FIREBASE_BASE.database().ref().child(gameId);
   }
 
   // setup firebase response to path data
@@ -75,16 +80,16 @@ $(function() {
   firebasePathsRef.on('child_changed', function(snapshot) {
     var firebaseData = snapshot.val();
     //console.log(firebaseData.path);
-    pathReference[snapshot.key()].pathData = firebaseData.path;
+    pathReference[snapshot.key].pathData = firebaseData.path;
     view.update();
   });
 
   firebasePathsRef.on('child_added', function(snapshot) {
     var firebaseData = snapshot.val();
-    pathReference[snapshot.key()] = new Path();
-    pathReference[snapshot.key()].pathData = firebaseData.path;
-    pathReference[snapshot.key()].strokeColor = 'red';
-    pathReference[snapshot.key()].strokeWidth = 3;
+    pathReference[snapshot.key] = new Path();
+    pathReference[snapshot.key].pathData = firebaseData.path;
+    pathReference[snapshot.key].strokeColor = 'red';
+    pathReference[snapshot.key].strokeWidth = 3;
     view.update();
   });
 
@@ -97,7 +102,10 @@ $(function() {
 
     // choose a word at random anyway
     selection = wordlist[Math.floor(Math.random() * wordlist.length)];
-    firebaseRef.set({word: selection, completed: false}, function() {
+    firebaseRef.set({
+      word: selection,
+      completed: false
+    }, function() {
       window.location = path;
     });
 
@@ -113,7 +121,10 @@ $(function() {
 
     // choose a word at random
     selection = wordlist[Math.floor(Math.random() * wordlist.length)];
-    firebaseRef.set({word: selection, completed: false}, function() {
+    firebaseRef.set({
+      word: selection,
+      completed: false
+    }, function() {
       window.location = path;
     });
 
@@ -145,11 +156,14 @@ $(function() {
     selection = wordlist[Math.floor(Math.random() * wordlist.length)];
 
     // selection = selection.split('');
-    firebaseRef.set({word: selection, completed: false});
+    firebaseRef.set({
+      word: selection,
+      completed: false
+    });
   });
 
   // get current word from firebase
-  firebaseRef.child('word').on('value', function(snapshot){
+  firebaseRef.child('word').on('value', function(snapshot) {
     selection = snapshot.val();
     console.log(selection);
     jumble = new Array();
@@ -163,8 +177,8 @@ $(function() {
     // setup paperjs for draw player
     // *****
     if (player === 'draw') {
-      $('#title').html(selection);
-      $('#title').show();
+      $('#drawingTitle').html(selection);
+      $('#drawingTitle').show();
       $('#letter-pool').hide();
       $('#word').hide();
 
@@ -174,19 +188,19 @@ $(function() {
         if (player == 'draw') {
           // If we produced a path before, deselect it:
           if (path) {
-              path.selected = false;
+            path.selected = false;
           }
 
           // Create a new path and set its stroke color to black:
           path = new Path({
-              segments: [event.point],
-              strokeColor: 'black',
-              // Select the path, so we can see its segment points:
-              fullySelected: true
+            segments: [event.point],
+            strokeColor: 'black',
+            // Select the path, so we can see its segment points:
+            fullySelected: true
           });
 
           firebasePath = firebasePathsRef.push();
-          pathReference[firebasePath.key()] = new Path();
+          pathReference[firebasePath.key] = new Path();
         }
       }
 
@@ -195,7 +209,9 @@ $(function() {
       tool.onMouseDrag = function(event) {
         if (player == 'draw') {
           path.add(event.point);
-          firebasePath.set({path: path.pathData});
+          firebasePath.set({
+            path: path.pathData
+          });
         }
       };
 
@@ -211,14 +227,14 @@ $(function() {
 
 
 
-    // *****
-    // setup tiles for guess player
-    // *****
-  } else if (player === 'guess') {
+      // *****
+      // setup tiles for guess player
+      // *****
+    } else if (player === 'guess') {
       // split the characters into an array
       selection = selection.split('');
 
-      $('#title').hide();
+      $('#drawingTitle').hide();
       $('#letter-pool').show();
       $('#word').show();
 
@@ -241,7 +257,7 @@ $(function() {
       });
 
       // print out characters on screen;
-      jumble.forEach(function(index){
+      jumble.forEach(function(index) {
         var tile = document.createElement('div');
         var text = document.createTextNode(index);
         tile.classList.add('letter');
@@ -302,7 +318,7 @@ $(function() {
 
       // add jquery ui drag function
       $('.letter').draggable({
-        stop: function( event, ui ) {
+        stop: function(event, ui) {
           //console.log(event);
           if (!ui.helper.parent().hasClass('position')) {
             ui.helper.animate({
@@ -316,3 +332,106 @@ $(function() {
   });
 
 }); // jQuery ready
+
+
+
+
+
+
+
+/**
+ * Function called when clicking the Login/Logout button.
+ */
+// [START buttoncallback]
+function toggleSignIn() {
+  if (!firebase.auth().currentUser) {
+    // [START createprovider]
+    var provider = new firebase.auth.GoogleAuthProvider();
+    // [END createprovider]
+    // [START addscopes]
+    provider.addScope('https://www.googleapis.com/auth/plus.login');
+    // [END addscopes]
+    // [START signin]
+    firebase.auth().signInWithPopup(provider).then(function(result) {
+      // This gives you a Google Access Token. You can use it to access the Google API.
+      var token = result.credential.accessToken;
+      // The signed-in user info.
+      var user = result.user;
+      // [START_EXCLUDE]
+      document.getElementById('quickstart-oauthtoken').textContent = token;
+      // [END_EXCLUDE]
+    }).catch(function(error) {
+      // Handle Errors here.
+      var errorCode = error.code;
+      var errorMessage = error.message;
+      // The email of the user's account used.
+      var email = error.email;
+      // The firebase.auth.AuthCredential type that was used.
+      var credential = error.credential;
+      // [START_EXCLUDE]
+      if (errorCode === 'auth/account-exists-with-different-credential') {
+        alert('You have already signed up with a different auth provider for that email.');
+        // If you are using multiple auth providers on your app you should handle linking
+        // the user's accounts here.
+      } else {
+        console.error(error);
+      }
+      // [END_EXCLUDE]
+    });
+    // [END signin]
+  } else {
+    // [START signout]
+    firebase.auth().signOut();
+    // [END signout]
+  }
+  // [START_EXCLUDE]
+  document.getElementById('quickstart-sign-in').disabled = true;
+  // [END_EXCLUDE]
+}
+// [END buttoncallback]
+
+
+/**
+ * initApp handles setting up UI event listeners and registering Firebase auth listeners:
+ *  - firebase.auth().onAuthStateChanged: This listener is called when the user is signed in or
+ *    out, and that is where we update the UI.
+ */
+function initApp() {
+  // Listening for auth state changes.
+  // [START authstatelistener]
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      // User is signed in.
+      var displayName = user.displayName;
+      var email = user.email;
+      var emailVerified = user.emailVerified;
+      var photoURL = user.photoURL;
+      var isAnonymous = user.isAnonymous;
+      var uid = user.uid;
+      var providerData = user.providerData;
+      // [START_EXCLUDE]
+      document.getElementById('quickstart-sign-in-status').textContent = 'Signed in';
+      document.getElementById('quickstart-sign-in').textContent = 'Sign out';
+      document.getElementById('quickstart-account-details').textContent = JSON.stringify(user, null, '  ');
+      console.log('auth data', user.photoURL);
+      document.getElementById('userStatus').innerHTML = `<img src="${user.photoURL}" />`;
+      // [END_EXCLUDE]
+    } else {
+      // User is signed out.
+      // [START_EXCLUDE]
+      document.getElementById('quickstart-sign-in-status').textContent = 'Signed out';
+      document.getElementById('quickstart-sign-in').textContent = 'Sign in with Google';
+      document.getElementById('quickstart-account-details').textContent = 'null';
+      document.getElementById('quickstart-oauthtoken').textContent = 'null';
+      // [END_EXCLUDE]
+    }
+    // [START_EXCLUDE]
+    document.getElementById('quickstart-sign-in').disabled = false;
+    // [END_EXCLUDE]
+  });
+  // [END authstatelistener]
+  document.getElementById('quickstart-sign-in').addEventListener('click', toggleSignIn, false);
+}
+window.onload = function() {
+  initApp();
+};
