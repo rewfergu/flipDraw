@@ -25,7 +25,7 @@ if (Cookies.get('player')) {
   player = getUrlVars()['player'];
 }
 
-document.querySelector('.wrapper').style.maxWidth = window.innerHeight / 1.3 + 'px';
+document.querySelector('.wrapper').style.maxWidth = window.innerHeight / 1.7 + 'px';
 
 // word tile variables
 var wordlist = [
@@ -104,7 +104,9 @@ $(function() {
     selection = wordlist[Math.floor(Math.random() * wordlist.length)];
     firebaseRef.set({
       word: selection,
-      completed: false
+      completed: false,
+      drawHeight: window.innerHeight,
+      drawWidth: window.innerWidth
     }, function() {
       window.location = path;
     });

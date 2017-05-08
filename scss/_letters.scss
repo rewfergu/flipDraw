@@ -4,14 +4,24 @@
   flex-wrap: wrap;
   border-radius: 10px;
   margin-bottom: 0.5rem;
+  @for $i from 1 through 50 {
+    .letter:nth-child(#{$i}) {
+      $color: hsl(random(360)+80, 20%, 50%);
+      background: $color;
+      &:before {
+        border: 1px solid $color;
+      }
+    }
+  }
   .letter {
     width: 1rem;
     padding: 1rem;
     border: 1px solid #ccc;
     margin: 4px;
     text-align: center;
-    border-radius: 5px;
-    background: white;
+    border-radius: 5px; // background: white;
+    color: #fff;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
   }
 }
 

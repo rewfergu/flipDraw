@@ -37,6 +37,206 @@
   flex-wrap: wrap;
   border-radius: 10px;
   margin-bottom: 0.5rem; }
+  .letter-pool .letter:nth-child(1) {
+    background: #997066; }
+    .letter-pool .letter:nth-child(1):before {
+      border: 1px solid #997066; }
+  .letter-pool .letter:nth-child(2) {
+    background: #7a9966; }
+    .letter-pool .letter:nth-child(2):before {
+      border: 1px solid #7a9966; }
+  .letter-pool .letter:nth-child(3) {
+    background: #667699; }
+    .letter-pool .letter:nth-child(3):before {
+      border: 1px solid #667699; }
+  .letter-pool .letter:nth-child(4) {
+    background: #746699; }
+    .letter-pool .letter:nth-child(4):before {
+      border: 1px solid #746699; }
+  .letter-pool .letter:nth-child(5) {
+    background: #66998d; }
+    .letter-pool .letter:nth-child(5):before {
+      border: 1px solid #66998d; }
+  .letter-pool .letter:nth-child(6) {
+    background: #669984; }
+    .letter-pool .letter:nth-child(6):before {
+      border: 1px solid #669984; }
+  .letter-pool .letter:nth-child(7) {
+    background: #999966; }
+    .letter-pool .letter:nth-child(7):before {
+      border: 1px solid #999966; }
+  .letter-pool .letter:nth-child(8) {
+    background: #998466; }
+    .letter-pool .letter:nth-child(8):before {
+      border: 1px solid #998466; }
+  .letter-pool .letter:nth-child(9) {
+    background: #668e99; }
+    .letter-pool .letter:nth-child(9):before {
+      border: 1px solid #668e99; }
+  .letter-pool .letter:nth-child(10) {
+    background: #979966; }
+    .letter-pool .letter:nth-child(10):before {
+      border: 1px solid #979966; }
+  .letter-pool .letter:nth-child(11) {
+    background: #996f66; }
+    .letter-pool .letter:nth-child(11):before {
+      border: 1px solid #996f66; }
+  .letter-pool .letter:nth-child(12) {
+    background: #669989; }
+    .letter-pool .letter:nth-child(12):before {
+      border: 1px solid #669989; }
+  .letter-pool .letter:nth-child(13) {
+    background: #6d6699; }
+    .letter-pool .letter:nth-child(13):before {
+      border: 1px solid #6d6699; }
+  .letter-pool .letter:nth-child(14) {
+    background: #8b9966; }
+    .letter-pool .letter:nth-child(14):before {
+      border: 1px solid #8b9966; }
+  .letter-pool .letter:nth-child(15) {
+    background: #66998b; }
+    .letter-pool .letter:nth-child(15):before {
+      border: 1px solid #66998b; }
+  .letter-pool .letter:nth-child(16) {
+    background: #668f99; }
+    .letter-pool .letter:nth-child(16):before {
+      border: 1px solid #668f99; }
+  .letter-pool .letter:nth-child(17) {
+    background: #699966; }
+    .letter-pool .letter:nth-child(17):before {
+      border: 1px solid #699966; }
+  .letter-pool .letter:nth-child(18) {
+    background: #819966; }
+    .letter-pool .letter:nth-child(18):before {
+      border: 1px solid #819966; }
+  .letter-pool .letter:nth-child(19) {
+    background: #806699; }
+    .letter-pool .letter:nth-child(19):before {
+      border: 1px solid #806699; }
+  .letter-pool .letter:nth-child(20) {
+    background: #669899; }
+    .letter-pool .letter:nth-child(20):before {
+      border: 1px solid #669899; }
+  .letter-pool .letter:nth-child(21) {
+    background: #99667d; }
+    .letter-pool .letter:nth-child(21):before {
+      border: 1px solid #99667d; }
+  .letter-pool .letter:nth-child(22) {
+    background: #996671; }
+    .letter-pool .letter:nth-child(22):before {
+      border: 1px solid #996671; }
+  .letter-pool .letter:nth-child(23) {
+    background: #966699; }
+    .letter-pool .letter:nth-child(23):before {
+      border: 1px solid #966699; }
+  .letter-pool .letter:nth-child(24) {
+    background: #668d99; }
+    .letter-pool .letter:nth-child(24):before {
+      border: 1px solid #668d99; }
+  .letter-pool .letter:nth-child(25) {
+    background: #667799; }
+    .letter-pool .letter:nth-child(25):before {
+      border: 1px solid #667799; }
+  .letter-pool .letter:nth-child(26) {
+    background: #8f6699; }
+    .letter-pool .letter:nth-child(26):before {
+      border: 1px solid #8f6699; }
+  .letter-pool .letter:nth-child(27) {
+    background: #66997c; }
+    .letter-pool .letter:nth-child(27):before {
+      border: 1px solid #66997c; }
+  .letter-pool .letter:nth-child(28) {
+    background: #669699; }
+    .letter-pool .letter:nth-child(28):before {
+      border: 1px solid #669699; }
+  .letter-pool .letter:nth-child(29) {
+    background: #999366; }
+    .letter-pool .letter:nth-child(29):before {
+      border: 1px solid #999366; }
+  .letter-pool .letter:nth-child(30) {
+    background: #669994; }
+    .letter-pool .letter:nth-child(30):before {
+      border: 1px solid #669994; }
+  .letter-pool .letter:nth-child(31) {
+    background: #66998e; }
+    .letter-pool .letter:nth-child(31):before {
+      border: 1px solid #66998e; }
+  .letter-pool .letter:nth-child(32) {
+    background: #669994; }
+    .letter-pool .letter:nth-child(32):before {
+      border: 1px solid #669994; }
+  .letter-pool .letter:nth-child(33) {
+    background: #969966; }
+    .letter-pool .letter:nth-child(33):before {
+      border: 1px solid #969966; }
+  .letter-pool .letter:nth-child(34) {
+    background: #826699; }
+    .letter-pool .letter:nth-child(34):before {
+      border: 1px solid #826699; }
+  .letter-pool .letter:nth-child(35) {
+    background: #669699; }
+    .letter-pool .letter:nth-child(35):before {
+      border: 1px solid #669699; }
+  .letter-pool .letter:nth-child(36) {
+    background: #667e99; }
+    .letter-pool .letter:nth-child(36):before {
+      border: 1px solid #667e99; }
+  .letter-pool .letter:nth-child(37) {
+    background: #669997; }
+    .letter-pool .letter:nth-child(37):before {
+      border: 1px solid #669997; }
+  .letter-pool .letter:nth-child(38) {
+    background: #669993; }
+    .letter-pool .letter:nth-child(38):before {
+      border: 1px solid #669993; }
+  .letter-pool .letter:nth-child(39) {
+    background: #99667d; }
+    .letter-pool .letter:nth-child(39):before {
+      border: 1px solid #99667d; }
+  .letter-pool .letter:nth-child(40) {
+    background: #8a6699; }
+    .letter-pool .letter:nth-child(40):before {
+      border: 1px solid #8a6699; }
+  .letter-pool .letter:nth-child(41) {
+    background: #996686; }
+    .letter-pool .letter:nth-child(41):before {
+      border: 1px solid #996686; }
+  .letter-pool .letter:nth-child(42) {
+    background: #66996f; }
+    .letter-pool .letter:nth-child(42):before {
+      border: 1px solid #66996f; }
+  .letter-pool .letter:nth-child(43) {
+    background: #667999; }
+    .letter-pool .letter:nth-child(43):before {
+      border: 1px solid #667999; }
+  .letter-pool .letter:nth-child(44) {
+    background: #99667f; }
+    .letter-pool .letter:nth-child(44):before {
+      border: 1px solid #99667f; }
+  .letter-pool .letter:nth-child(45) {
+    background: #949966; }
+    .letter-pool .letter:nth-child(45):before {
+      border: 1px solid #949966; }
+  .letter-pool .letter:nth-child(46) {
+    background: #66997d; }
+    .letter-pool .letter:nth-child(46):before {
+      border: 1px solid #66997d; }
+  .letter-pool .letter:nth-child(47) {
+    background: #668099; }
+    .letter-pool .letter:nth-child(47):before {
+      border: 1px solid #668099; }
+  .letter-pool .letter:nth-child(48) {
+    background: #7c9966; }
+    .letter-pool .letter:nth-child(48):before {
+      border: 1px solid #7c9966; }
+  .letter-pool .letter:nth-child(49) {
+    background: #816699; }
+    .letter-pool .letter:nth-child(49):before {
+      border: 1px solid #816699; }
+  .letter-pool .letter:nth-child(50) {
+    background: #919966; }
+    .letter-pool .letter:nth-child(50):before {
+      border: 1px solid #919966; }
   .letter-pool .letter {
     width: 1rem;
     padding: 1rem;
@@ -44,7 +244,8 @@
     margin: 4px;
     text-align: center;
     border-radius: 5px;
-    background: white; }
+    color: #fff;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3); }
 
 .word {
   display: flex;
@@ -98,7 +299,8 @@ body {
   background: white;
   height: 100vh;
   display: block;
-  position: relative; }
+  position: relative;
+  background: url("img/grid.png"); }
 
 .statusBar {
   display: flex;
@@ -135,7 +337,6 @@ body {
 /* Scale canvas with resize attribute to full size */
 canvas {
   position: absolute;
-  background: #d6ebfb;
   z-index: 1;
   width: 100%;
   height: 100%;
