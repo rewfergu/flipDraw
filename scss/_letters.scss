@@ -54,7 +54,10 @@
   .position--hover {
     border: 1px dashed black;
   }
-  .position--correct {}
+  .position--correct .letter {
+    background: #4A5882;
+    color: #fff;
+  }
   .position--incorrect {
     animation-duration: 1s;
     animation-name: showError;

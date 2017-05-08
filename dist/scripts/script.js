@@ -102,11 +102,17 @@ $(function() {
 
     // choose a word at random anyway
     selection = wordlist[Math.floor(Math.random() * wordlist.length)];
+
+    // set up canvas
+    const drawHeight = window.canvas.offsetHeight;
+    const drawWidth = window.canvas.offsetWidth;
+
+    // send data to firebase
     firebaseRef.set({
       word: selection,
       completed: false,
-      drawHeight: window.innerHeight,
-      drawWidth: window.innerWidth
+      drawHeight: drawHeight,
+      drawWidth: drawWidth
     }, function() {
       window.location = path;
     });
@@ -239,6 +245,35 @@ $(function() {
       $('#drawingTitle').hide();
       $('#letter-pool').show();
       $('#word').show();
+
+      let getWidth = firebaseRef.child('drawWidth').once('value').then(function(data) {
+        //drawWidth = data.val();
+        //console.log('getWidth', drawWidth);
+        return data.val();
+      });
+      let getHeight = firebaseRef.child('drawHeight').once('value').then(function(data) {
+        // drawHeight = data.val();
+        // console.log('getHeight', drawHeight);
+        return data.val();
+      });
+
+      Promise.all([getHeight, getWidth]).then(values => {
+        let drawWidth = values[1];
+        let drawHeight = values[0];
+        const aspectRatio = drawWidth / drawHeight;
+
+        console.log('values', values);
+        console.log('drawWidth', values[0]);
+        console.log('drawHeight', values[1]);
+
+        // scale canvas if necessary
+        if (drawHeight > window.canvas.offsetHeight) {
+          const imageDiff = window.canvas.offsetHeight / drawHeight;
+          paper.view._matrix.scale(imageDiff);
+          paper.view.update();
+        }
+      });
+
 
 
 
