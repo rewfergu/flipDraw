@@ -1,3 +1,5 @@
+var initGame = require('./initGame');
+
 // game setup variables
 var FIREBASE_BASE = firebase;
 var firebaseRef;
@@ -5,6 +7,9 @@ var firebasePath;
 var path;
 var pathReference;
 var firebasePathsRef;
+
+initGame();
+
 
 var getUrlVars = function() {
   var vars = {};
@@ -247,13 +252,9 @@ $(function() {
       $('#word').show();
 
       let getWidth = firebaseRef.child('drawWidth').once('value').then(function(data) {
-        //drawWidth = data.val();
-        //console.log('getWidth', drawWidth);
         return data.val();
       });
       let getHeight = firebaseRef.child('drawHeight').once('value').then(function(data) {
-        // drawHeight = data.val();
-        // console.log('getHeight', drawHeight);
         return data.val();
       });
 
