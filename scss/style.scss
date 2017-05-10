@@ -1,10 +1,12 @@
+@import url('https://fonts.googleapis.com/css?family=Walter+Turncoat');
+$font: 'Walter Turncoat';
 @import 'menu';
 @import 'letters';
 body {
   margin: 0;
   background: #ccc;
   padding: 0;
-  font-family: sans-serif;
+  font-family: $font, sans-serif;
 }
 
 .wrapper {

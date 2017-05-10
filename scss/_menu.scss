@@ -7,13 +7,15 @@
   height: 100vh;
   justify-content: center;
   align-items: center;
-  background: rgba(0, 0, 0, 0.85);
+  background: #4A5882;
   z-index: 999;
   display: none;
 }
 
 .menu {
   text-align: center;
+  padding: 2rem;
+  color: #fff;
 }
 
 .menu__title {
@@ -21,16 +23,27 @@
   margin: 20px;
 }
 
-.menu__btn,
+.menu__userImage {
+  display: block;
+  margin: 0 auto;
+  img {
+    width: 75px;
+    height: 75px;
+    border-radius: 50%;
+  }
+}
+
 .menu__btn {
+  font-family: $font, sans-serif;
   display: block;
   background: #fff;
   padding: 10px 30px;
-  width: 200px;
+  width: 300px;
   margin: 20px auto;
   font-size: 1.3rem;
   color: #555;
   text-decoration: none;
   border: none;
   border-radius: 10px;
+  box-sizing: border-box;
 }

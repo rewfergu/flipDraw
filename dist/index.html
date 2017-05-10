@@ -29,23 +29,14 @@
 
   <div class="menu-bg" id="menu">
     <div class="menu">
-      <h1 class="menu__title">Start a new game.</h1>
+      <h1><span>Flip</span>Draw</h1>
+      <h2 class="menu__title">Start a new game.</h1>
 
+        <div class="menu__userImage"></div>
 
-      <button disabled class="mdl-button mdl-js-button mdl-button--raised" id="quickstart-sign-in">Sign in with Google</button>
-
-      <!-- Container where we'll display the user details -->
-      <div class="quickstart-user-details-container">
-        Firebase sign-in status: <span id="quickstart-sign-in-status">Unknown</span>
-        <div>Firebase auth <code>currentUser</code> object value:</div>
-        <pre><code id="quickstart-account-details">null</code></pre>
-        <div>Google OAuth Access Token:</div>
-        <pre><code id="quickstart-oauthtoken">null</code></pre>
-      </div>
-
-
-      <a href="index.html" id="drawBtn" class="menu__btn">Draw</a>
-      <a href="index.html" id="guessBtn" class="menu__btn">Guess</a>
+        <a href="index.html" id="drawBtn" class="menu__btn">Draw</a>
+        <a href="index.html" id="guessBtn" class="menu__btn">Guess</a>
+        <button disabled class="menu__btn" id="quickstart-sign-in">Sign in with Google</button>
     </div>
   </div>
 
