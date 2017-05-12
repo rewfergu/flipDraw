@@ -9,6 +9,7 @@ var source = require('vinyl-source-stream');
 var buffer = require('vinyl-buffer');
 var assign = require('lodash.assign');
 var gutil = require('gulp-util');
+var babel = require('gulp-babel');
 
 gulp.task('browser-sync', function() {
   browserSync.init({
@@ -43,29 +44,40 @@ gulp.task('sass', function() {
 //var b = watchify(browserify(opts));
 //b.on('update', bundle); // on any dep update, runs the bundler
 gulp.task('js', function() {
-  var b = browserify({
-    entries: ['./scripts/script.js'],
-    debug: true
-  });
+  // var b = browserify({
+  //   entries: ['./scripts/script.js'],
+  //   debug: true
+  // });
 
-  return b.bundle()
-    //.pipe(source('bundle.js'))
-    // .pipe(sourcemaps.init({
-    //   loadMaps: true
-    // }))
-    // // Add transformation tasks to the pipeline here.
-    // .pipe(sourcemaps.write('./')) // writes .map file
+  // return b.bundle()
+  // .pipe(source('bundle.js'))
+  // .pipe(sourcemaps.init({
+  //   loadMaps: true
+  // }))
+  // // Add transformation tasks to the pipeline here.
+  // .pipe(sourcemaps.write('./')) // writes .map file
+  // .pipe(source('./dist/scripts/bundle.js'))
+  // .pipe(buffer())
+  // .pipe(sourcemaps.init({
+  //   loadMaps: true
+  // }))
+  // .pipe(uglify())
+  // .on('error', gutil.log)
+  // .pipe(sourcemaps.write('./'))
+  // .pipe(gulp.dest('./'));
 
-    .pipe(source('./dist/scripts/bundle.js'))
-    .pipe(buffer())
-    // .pipe(sourcemaps.init({
-    //   loadMaps: true
-    // }))
-    // .pipe(uglify())
-    // .on('error', gutil.log)
-    // .pipe(sourcemaps.write('./'))
-    .pipe(gulp.dest('./'));
+  return gulp.src("js/*.js")
+    .pipe(sourcemaps.init())
+    .pipe(babel())
+    .pipe(concat("bundle.js"))
+    .pipe(sourcemaps.write("."))
+    .pipe(gulp.dest("dist/scripts"));
 });
+
+
+
+
+
 
 
 gulp.task('default', ['js', 'browser-sync']);
