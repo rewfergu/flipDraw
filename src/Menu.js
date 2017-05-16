@@ -5,6 +5,16 @@ import NewGame from './NewGame';
 class Menu extends Component {
   constructor(props) {
     super(props);
+    this.wordlist = [
+      "cat",
+      "dog",
+      "bird",
+      "fish",
+      "snake",
+      "turtle",
+      "snail",
+    ];
+
     this.selectDraw = this.selectDraw.bind(this);
     this.selectDraw = this.selectDraw.bind(this);
     this.closeMenu = this.closeMenu.bind(this);
@@ -35,16 +45,19 @@ class Menu extends Component {
   setupGame(role) {
     // const _this = this;
     const gameRef = database.ref().push();
-    gameRef.set({
-      players: {
-        player1: {
-          id: this.props.uid,
-          role: role
-        }
-      }
-    });
+    const currentAnimal = this.wordlist[Math.floor(Math.random() * this.wordlist.length)];
+    // gameRef.set({
+    //   currentAnimal: currentAnimal,
+    //   players: {
+    //     player1: {
+    //       id: this.props.uid,
+    //       role: role
+    //     }
+    //   }
+    // });
 
     gameRef.set({
+      currentAnimal: currentAnimal,
       player1: role,
       [this.props.uid]: role,
     });
