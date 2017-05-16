@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import Menu from './Menu';
 import { database, auth, } from './firebase.config';
-import paper from 'paper';
+import Paper from 'paper';
 
 import './css/style.css';
 
@@ -23,6 +23,10 @@ class App extends Component {
     };
 
     this.firebasePathsRef = null;
+    this.firebasePath = null;
+    this.path = null;
+    this.pathReference = null;
+
     this.gameRef = null;
     this.jumble = [];
     this.solution = [];
@@ -48,14 +52,14 @@ class App extends Component {
   }
 
   componentDidMount() {
-    const _this = this;
-    // setup paper.js
-    paper.install(window);
+    // setup Paper.js
+    //Paper.install(window);
     const canvas = document.getElementById('canvas');
     // canvas.width = window.innerWidth;
     // canvas.height = window.innerHeight;
-    paper.setup(canvas);
+    Paper.setup(canvas);
 
+    const _this = this;
     // check for exising game ID
     if (!this.state.gameId) {
       // display menu
@@ -70,7 +74,12 @@ class App extends Component {
         showMenu: false
       });
 
+      // setup firebase reference to this game
       this.gameRef = database.ref().child(this.state.gameId);
+
+      // setup firebase response to path data
+      this.pathReference = {};
+      this.firebasePathsRef = this.gameRef.child('paths');
     }
 
     auth.onAuthStateChanged(function(user) {
@@ -96,31 +105,33 @@ class App extends Component {
       }
     });
 
-    // setup firebase response to path data
-    let pathReference = {};
-    this.firebasePathsRef = this.gameRef.child('paths');
+
 
     this.firebasePathsRef.on('child_changed', function(snapshot) {
       var firebaseData = snapshot.val();
       //console.log(firebaseData.path);
-      pathReference[snapshot.key].pathData = firebaseData.path;
-      paper.view.update();
+      _this.pathReference[snapshot.key].pathData = firebaseData.path;
+      Paper.view.update();
     });
 
     this.firebasePathsRef.on('child_added', function(snapshot) {
       var firebaseData = snapshot.val();
-      pathReference[snapshot.key] = new paper.Path();
-      pathReference[snapshot.key].pathData = firebaseData.path;
-      pathReference[snapshot.key].strokeColor = '#3b6cb7';
-      pathReference[snapshot.key].strokeWidth = 3;
-      paper.view.update();
+      _this.pathReference[snapshot.key] = new Paper.Path();
+      _this.pathReference[snapshot.key].pathData = firebaseData.path;
+      _this.pathReference[snapshot.key].strokeColor = '#3b6cb7';
+      _this.pathReference[snapshot.key].strokeWidth = 3;
+      Paper.view.update();
     });
 
     this.gameRef.child('completed').on('value', function(snapshot) {
       if (snapshot.val() === true) {
         // $('#gameOver').show();
-        paper.project.activeLayer.children = [];
-        paper.view.update();
+
+
+        Paper.project.activeLayer.children = [];
+        Paper.view.update();
+
+
         // $('#word').empty();
         // $('#letter-pool').empty();
         this.jumble = [];
@@ -158,8 +169,10 @@ class App extends Component {
 
       if (myRole === 1) {
         // I'm the draw player
+        _this.setupDrawPlayer();
       } else if (myRole === -1) {
         // I'm the guess player
+        _this.setupGuessPlayer();
       } else {
         // unknown
         // I'm the opposite of player1
@@ -184,78 +197,70 @@ class App extends Component {
   resetAnimal() {}
 
   setupDrawPlayer() {
+    const _this = this;
     // var path = $(this).attr('href');
     // path += '&player=guess';
     // $(this).attr('href', path);
     // Cookies.set('player', 'draw');
 
     // choose a word at random anyway
-
+    console.log('setting up player: draw');
 
     // set up canvas
     const drawHeight = window.canvas.offsetHeight;
     const drawWidth = window.canvas.offsetWidth;
 
     // send data to firebase
-    this.gameRef.set({
-      word: this.selection,
-      completed: false,
+    this.gameRef.update({
       drawHeight: drawHeight,
       drawWidth: drawWidth
-    }, function() {
-      //window.location = path;
     });
 
+    var tool = new Paper.Tool();
 
+    console.log('tool', tool);
 
+    tool.onMouseDown = function(event) {
+      console.log('hello, this is tool.');
 
+      if (_this.state.me === 1) {
+        // If we produced a path before, deselect it:
+        if (_this.path) {
+          _this.path.selected = false;
+        }
 
-    // $('#drawingTitle').html(selection);
-    //   $('#drawingTitle').show();
-    //   $('#letter-pool').hide();
-    //   $('#word').hide();
+        // Create a new path and set its stroke color to black:
+        _this.path = new Paper.Path({
+          segments: [event.point],
+          strokeColor: 'black',
+          // Select the path, so we can see its segment points:
+          fullySelected: true
+        });
 
-    //   var tool = new Tool();
+        _this.firebasePath = _this.firebasePathsRef.push();
+        _this.pathReference[_this.firebasePath.key] = new Paper.Path();
+      }
+    }
 
-    //   tool.onMouseDown = function(event) {
-    //     if (player == 'draw') {
-    //       // If we produced a path before, deselect it:
-    //       if (path) {
-    //         path.selected = false;
-    //       }
+    // While the user drags the mouse, points are added to the path
+    // at the position of the mouse:
+    tool.onMouseDrag = function(event) {
+      if (_this.state.me === 1) {
+        _this.path.add(event.point);
+        _this.firebasePath.set({
+          path: _this.path.pathData
+        });
+      }
+    };
 
-    //       // Create a new path and set its stroke color to black:
-    //       path = new Path({
-    //         segments: [event.point],
-    //         strokeColor: 'black',
-    //         // Select the path, so we can see its segment points:
-    //         fullySelected: true
-    //       });
-
-    //       firebasePath = firebasePathsRef.push();
-    //       pathReference[firebasePath.key] = new Path();
-    //     }
-    //   }
-
-    //   // While the user drags the mouse, points are added to the path
-    //   // at the position of the mouse:
-    //   tool.onMouseDrag = function(event) {
-    //     if (player == 'draw') {
-    //       path.add(event.point);
-    //       firebasePath.set({
-    //         path: path.pathData
-    //       });
-    //     }
-    //   };
-
-  //   // When the mouse is released, we simplify the path:
-  //   tool.onMouseUp = function(event) {
-  //     if (player == 'draw') {
-  //       //path.simplify(10);
-  //       path.fullySelected = false;
-  //       path.remove();
-  //     }
-  //   }
+    // When the mouse is released, we simplify the path:
+    tool.onMouseUp = function(event) {
+      if (_this.state.me === 1) {
+        //path.simplify(10);
+        _this.path.fullySelected = false;
+        _this.path.remove();
+      }
+    }
   }
 
   setupGuessPlayer() {
@@ -303,8 +308,8 @@ class App extends Component {
     //     // scale canvas if necessary
     //     if (drawHeight > window.canvas.offsetHeight) {
     //       const imageDiff = window.canvas.offsetHeight / drawHeight;
-    //       paper.view._matrix.scale(imageDiff);
-    //       paper.view.update();
+    //       Paper.view._matrix.scale(imageDiff);
+    //       Paper.view.update();
     //     }
     //   });
 
@@ -413,16 +418,16 @@ class App extends Component {
     });
   }
 
-  gameOver() {
-    // choose a word at random
-    this.selection = this.wordlist[Math.floor(Math.random() * this.wordlist.length)];
+  // gameOver() {
+  //   // choose a word at random
+  //   this.selection = this.wordlist[Math.floor(Math.random() * this.wordlist.length)];
 
-    // selection = selection.split('');
-    this.gameRef.set({
-      word: this.selection,
-      completed: false
-    });
-  }
+  //   // selection = selection.split('');
+  //   this.gameRef.set({
+  //     word: this.selection,
+  //     completed: false
+  //   });
+  // }
 
   render() {
     return (

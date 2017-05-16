@@ -58,6 +58,7 @@ class Menu extends Component {
 
     gameRef.set({
       currentAnimal: currentAnimal,
+      completed: false,
       player1: role,
       [this.props.uid]: role,
     });
@@ -66,6 +67,7 @@ class Menu extends Component {
   }
 
   selectDraw() {
+    console.log('select draw');
     this.setupGame(1);
   }
 
