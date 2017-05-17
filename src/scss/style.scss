@@ -9,6 +9,10 @@ body {
   font-family: $font, sans-serif;
 }
 
+body, h1, h2, h3, button {
+  font-family: $font, sans-serif;
+}
+
 .wrapper {
   // max-width: 400px;
   margin: 0 auto;
@@ -16,7 +20,7 @@ body {
   height: 100vh;
   display: block; // flex-wrap: wrap;
   position: relative;
-  background: url('img/grid.png');
+  background: url('../img/grid.png');
 }
 
 .statusBar {
@@ -83,4 +87,8 @@ canvas {
   left: 0;
   right: 0;
   padding: 10px;
+}
+
+.active {
+  display: block;
 }

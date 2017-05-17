@@ -1,31 +1,30 @@
 {
   "name": "flipdraw",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "collaborative drawing game in javascript",
-  "main": "index.html",
+  "private": true,
   "dependencies": {
-    "gulp-sass": "^2.1.1",
-    "gulp": "^3.9.0",
-    "wiredep": "^3.0.0",
-    "browser-sync": "^2.10.1",
-    "gulp-uglify": "^1.5.1"
+    "firebase": "^3.9.0",
+    "jquery": "^3.2.1",
+    "jquery-ui": "^1.12.1",
+    "jquery-ui-touch-punch-c": "^1.4.0",
+    "paper": "^0.11.3",
+    "react": "^15.5.4",
+    "react-dom": "^15.5.4",
+    "react-dragula": "^1.1.17"
   },
   "devDependencies": {
-    "browser-sync": "^2.10.1",
-    "browserify": "^14.3.0",
-    "gulp": "^3.9.0",
-    "gulp-sass": "^2.1.1",
-    "gulp-sourcemaps": "^2.6.0",
-    "gulp-uglify": "^1.5.1",
-    "gulp-util": "^3.0.8",
-    "lodash": "^4.17.4",
-    "vinyl-buffer": "^1.0.0",
-    "vinyl-source-stream": "^1.1.0",
-    "watchify": "^3.9.0"
+    "node-sass": "^4.5.2",
+    "npm-run-all": "^4.0.2",
+    "react-scripts": "0.9.5"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
-  "author": "",
-  "license": "ISC"
+    "start-js": "react-scripts start",
+    "start": "npm-run-all -p watch-css start-js",
+    "build": "npm run build-css && react-scripts build",
+    "build-css": "node-sass src/scss -o src/css/",
+    "watch-css": "npm run build-css && node-sass src/scss -o src/css/ --watch --recursive",
+    "test": "react-scripts test --env=jsdom",
+    "eject": "react-scripts eject"
+  }
 }
