@@ -4,6 +4,7 @@
   "description": "collaborative drawing game in javascript",
   "private": true,
   "dependencies": {
+    "animals": "^0.0.3",
     "firebase": "^3.9.0",
     "jquery": "^3.2.1",
     "jquery-ui": "^1.12.1",

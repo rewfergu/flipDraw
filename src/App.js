@@ -3,6 +3,7 @@ import Menu from './Menu';
 import Letters from './Letters';
 import { database, auth, } from './firebase.config';
 import Paper from 'paper';
+import randomAnimal from './Animals';
 
 import './css/style.css';
 
@@ -20,16 +21,6 @@ class App extends Component {
       showMenu: true,
       completed: false
     };
-
-    this.wordlist = [
-      "cat",
-      "dog",
-      "bird",
-      "fish",
-      "snake",
-      "turtle",
-      "snail",
-    ];
 
     this.firebasePathsRef = null;
     this.firebasePath = null;
@@ -153,7 +144,7 @@ class App extends Component {
       if (snapshot.val() === true) {
         // game over
 
-      const currentAnimal = _this.wordlist[Math.floor(Math.random() * _this.wordlist.length)];
+      const currentAnimal = randomAnimal();
       const newPlayer1 = _this.state.player1 * -1;
 
       _this.setState({

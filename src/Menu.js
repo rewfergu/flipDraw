@@ -1,19 +1,11 @@
 import React, { Component } from 'react';
 import { database, auth, authprovider } from './firebase.config';
 import NewGame from './NewGame';
+import randomAnimal from './Animals';
 
 class Menu extends Component {
   constructor(props) {
     super(props);
-    this.wordlist = [
-      "cat",
-      "dog",
-      "bird",
-      "fish",
-      "snake",
-      "turtle",
-      "snail",
-    ];
 
     this.selectDraw = this.selectDraw.bind(this);
     this.selectDraw = this.selectDraw.bind(this);
@@ -49,7 +41,7 @@ class Menu extends Component {
   setupGame(role) {
     // const _this = this;
     const gameRef = database.ref().push();
-    const currentAnimal = this.wordlist[Math.floor(Math.random() * this.wordlist.length)];
+    const currentAnimal = randomAnimal();
     // gameRef.set({
     //   currentAnimal: currentAnimal,
     //   players: {
