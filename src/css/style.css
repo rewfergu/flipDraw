@@ -4,7 +4,7 @@
   position: absolute;
   left: 0;
   top: 0;
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   justify-content: center;
   align-items: center;
@@ -42,212 +42,44 @@
   border-radius: 10px;
   box-sizing: border-box; }
 
+/* dragula styles */
+.gu-mirror {
+  position: fixed !important;
+  margin: 0 !important;
+  z-index: 9999 !important;
+  opacity: 0.8;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+  filter: alpha(opacity=80);
+  border: 1px solid #ccc;
+  text-align: center;
+  border-radius: 5px;
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3); }
+  .gu-mirror span {
+    display: block;
+    position: relative;
+    top: 1rem; }
+
+.gu-hide {
+  display: none !important; }
+
+.gu-unselectable {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important; }
+
+.gu-transit {
+  opacity: 0.2;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+  filter: alpha(opacity=20); }
+
 .letter-pool {
   display: flex;
   justify-content: left;
   flex-wrap: wrap;
   border-radius: 10px;
   margin-bottom: 0.5rem; }
-  .letter-pool .letter:nth-child(1) {
-    background: #8d9966; }
-    .letter-pool .letter:nth-child(1):before {
-      border: 1px solid #8d9966; }
-  .letter-pool .letter:nth-child(2) {
-    background: #969966; }
-    .letter-pool .letter:nth-child(2):before {
-      border: 1px solid #969966; }
-  .letter-pool .letter:nth-child(3) {
-    background: #669996; }
-    .letter-pool .letter:nth-child(3):before {
-      border: 1px solid #669996; }
-  .letter-pool .letter:nth-child(4) {
-    background: #879966; }
-    .letter-pool .letter:nth-child(4):before {
-      border: 1px solid #879966; }
-  .letter-pool .letter:nth-child(5) {
-    background: #8c9966; }
-    .letter-pool .letter:nth-child(5):before {
-      border: 1px solid #8c9966; }
-  .letter-pool .letter:nth-child(6) {
-    background: #999166; }
-    .letter-pool .letter:nth-child(6):before {
-      border: 1px solid #999166; }
-  .letter-pool .letter:nth-child(7) {
-    background: #667499; }
-    .letter-pool .letter:nth-child(7):before {
-      border: 1px solid #667499; }
-  .letter-pool .letter:nth-child(8) {
-    background: #997166; }
-    .letter-pool .letter:nth-child(8):before {
-      border: 1px solid #997166; }
-  .letter-pool .letter:nth-child(9) {
-    background: #7c9966; }
-    .letter-pool .letter:nth-child(9):before {
-      border: 1px solid #7c9966; }
-  .letter-pool .letter:nth-child(10) {
-    background: #99668d; }
-    .letter-pool .letter:nth-child(10):before {
-      border: 1px solid #99668d; }
-  .letter-pool .letter:nth-child(11) {
-    background: #856699; }
-    .letter-pool .letter:nth-child(11):before {
-      border: 1px solid #856699; }
-  .letter-pool .letter:nth-child(12) {
-    background: #99667e; }
-    .letter-pool .letter:nth-child(12):before {
-      border: 1px solid #99667e; }
-  .letter-pool .letter:nth-child(13) {
-    background: #996667; }
-    .letter-pool .letter:nth-child(13):before {
-      border: 1px solid #996667; }
-  .letter-pool .letter:nth-child(14) {
-    background: #999566; }
-    .letter-pool .letter:nth-child(14):before {
-      border: 1px solid #999566; }
-  .letter-pool .letter:nth-child(15) {
-    background: #99666c; }
-    .letter-pool .letter:nth-child(15):before {
-      border: 1px solid #99666c; }
-  .letter-pool .letter:nth-child(16) {
-    background: #999966; }
-    .letter-pool .letter:nth-child(16):before {
-      border: 1px solid #999966; }
-  .letter-pool .letter:nth-child(17) {
-    background: #996690; }
-    .letter-pool .letter:nth-child(17):before {
-      border: 1px solid #996690; }
-  .letter-pool .letter:nth-child(18) {
-    background: #99668e; }
-    .letter-pool .letter:nth-child(18):before {
-      border: 1px solid #99668e; }
-  .letter-pool .letter:nth-child(19) {
-    background: #939966; }
-    .letter-pool .letter:nth-child(19):before {
-      border: 1px solid #939966; }
-  .letter-pool .letter:nth-child(20) {
-    background: #8a9966; }
-    .letter-pool .letter:nth-child(20):before {
-      border: 1px solid #8a9966; }
-  .letter-pool .letter:nth-child(21) {
-    background: #8d9966; }
-    .letter-pool .letter:nth-child(21):before {
-      border: 1px solid #8d9966; }
-  .letter-pool .letter:nth-child(22) {
-    background: #839966; }
-    .letter-pool .letter:nth-child(22):before {
-      border: 1px solid #839966; }
-  .letter-pool .letter:nth-child(23) {
-    background: #667999; }
-    .letter-pool .letter:nth-child(23):before {
-      border: 1px solid #667999; }
-  .letter-pool .letter:nth-child(24) {
-    background: #816699; }
-    .letter-pool .letter:nth-child(24):before {
-      border: 1px solid #816699; }
-  .letter-pool .letter:nth-child(25) {
-    background: #66998d; }
-    .letter-pool .letter:nth-child(25):before {
-      border: 1px solid #66998d; }
-  .letter-pool .letter:nth-child(26) {
-    background: #996a66; }
-    .letter-pool .letter:nth-child(26):before {
-      border: 1px solid #996a66; }
-  .letter-pool .letter:nth-child(27) {
-    background: #739966; }
-    .letter-pool .letter:nth-child(27):before {
-      border: 1px solid #739966; }
-  .letter-pool .letter:nth-child(28) {
-    background: #66998b; }
-    .letter-pool .letter:nth-child(28):before {
-      border: 1px solid #66998b; }
-  .letter-pool .letter:nth-child(29) {
-    background: #929966; }
-    .letter-pool .letter:nth-child(29):before {
-      border: 1px solid #929966; }
-  .letter-pool .letter:nth-child(30) {
-    background: #899966; }
-    .letter-pool .letter:nth-child(30):before {
-      border: 1px solid #899966; }
-  .letter-pool .letter:nth-child(31) {
-    background: #996679; }
-    .letter-pool .letter:nth-child(31):before {
-      border: 1px solid #996679; }
-  .letter-pool .letter:nth-child(32) {
-    background: #66997d; }
-    .letter-pool .letter:nth-child(32):before {
-      border: 1px solid #66997d; }
-  .letter-pool .letter:nth-child(33) {
-    background: #796699; }
-    .letter-pool .letter:nth-child(33):before {
-      border: 1px solid #796699; }
-  .letter-pool .letter:nth-child(34) {
-    background: #669973; }
-    .letter-pool .letter:nth-child(34):before {
-      border: 1px solid #669973; }
-  .letter-pool .letter:nth-child(35) {
-    background: #996685; }
-    .letter-pool .letter:nth-child(35):before {
-      border: 1px solid #996685; }
-  .letter-pool .letter:nth-child(36) {
-    background: #996672; }
-    .letter-pool .letter:nth-child(36):before {
-      border: 1px solid #996672; }
-  .letter-pool .letter:nth-child(37) {
-    background: #997766; }
-    .letter-pool .letter:nth-child(37):before {
-      border: 1px solid #997766; }
-  .letter-pool .letter:nth-child(38) {
-    background: #996668; }
-    .letter-pool .letter:nth-child(38):before {
-      border: 1px solid #996668; }
-  .letter-pool .letter:nth-child(39) {
-    background: #879966; }
-    .letter-pool .letter:nth-child(39):before {
-      border: 1px solid #879966; }
-  .letter-pool .letter:nth-child(40) {
-    background: #669974; }
-    .letter-pool .letter:nth-child(40):before {
-      border: 1px solid #669974; }
-  .letter-pool .letter:nth-child(41) {
-    background: #668799; }
-    .letter-pool .letter:nth-child(41):before {
-      border: 1px solid #668799; }
-  .letter-pool .letter:nth-child(42) {
-    background: #7a6699; }
-    .letter-pool .letter:nth-child(42):before {
-      border: 1px solid #7a6699; }
-  .letter-pool .letter:nth-child(43) {
-    background: #999166; }
-    .letter-pool .letter:nth-child(43):before {
-      border: 1px solid #999166; }
-  .letter-pool .letter:nth-child(44) {
-    background: #669984; }
-    .letter-pool .letter:nth-child(44):before {
-      border: 1px solid #669984; }
-  .letter-pool .letter:nth-child(45) {
-    background: #996681; }
-    .letter-pool .letter:nth-child(45):before {
-      border: 1px solid #996681; }
-  .letter-pool .letter:nth-child(46) {
-    background: #997a66; }
-    .letter-pool .letter:nth-child(46):before {
-      border: 1px solid #997a66; }
-  .letter-pool .letter:nth-child(47) {
-    background: #668b99; }
-    .letter-pool .letter:nth-child(47):before {
-      border: 1px solid #668b99; }
-  .letter-pool .letter:nth-child(48) {
-    background: #996672; }
-    .letter-pool .letter:nth-child(48):before {
-      border: 1px solid #996672; }
-  .letter-pool .letter:nth-child(49) {
-    background: #729966; }
-    .letter-pool .letter:nth-child(49):before {
-      border: 1px solid #729966; }
-  .letter-pool .letter:nth-child(50) {
-    background: #669992; }
-    .letter-pool .letter:nth-child(50):before {
-      border: 1px solid #669992; }
   .letter-pool .letter {
     width: 1rem;
     padding: 1rem;
@@ -281,7 +113,7 @@
       border: 1px solid #a5a5a5;
       text-align: center;
       border-radius: 5px;
-      background: white; }
+      color: #fff; }
   .word .position--hover {
     border: 1px dashed black; }
   .word .position--correct .letter {

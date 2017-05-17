@@ -1,18 +1,52 @@
+/* dragula styles */
+.gu-mirror {
+  position: fixed !important;
+  margin: 0 !important;
+  z-index: 9999 !important;
+  opacity: 0.8;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=80)";
+  filter: alpha(opacity=80);
+  border: 1px solid #ccc;
+  text-align: center;
+  border-radius: 5px; // background: white;
+  color: #fff;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.3);
+  span {
+    display: block;
+    position: relative;
+    top: 1rem;
+  }
+}
+.gu-hide {
+  display: none !important;
+}
+.gu-unselectable {
+  -webkit-user-select: none !important;
+  -moz-user-select: none !important;
+  -ms-user-select: none !important;
+  user-select: none !important;
+}
+.gu-transit {
+  opacity: 0.2;
+  -ms-filter: "progid:DXImageTransform.Microsoft.Alpha(Opacity=20)";
+  filter: alpha(opacity=20);
+}
+
 .letter-pool {
   display: flex;
   justify-content: left;
   flex-wrap: wrap;
   border-radius: 10px;
   margin-bottom: 0.5rem;
-  @for $i from 1 through 50 {
-    .letter:nth-child(#{$i}) {
-      $color: hsl(random(360)+80, 20%, 50%);
-      background: $color;
-      &:before {
-        border: 1px solid $color;
-      }
-    }
-  }
+  // @for $i from 1 through 50 {
+  //   .letter:nth-child(#{$i}) {
+  //     $color: hsl(random(360)+80, 20%, 50%);
+  //     background: $color;
+  //     &:before {
+  //       border: 1px solid $color;
+  //     }
+  //   }
+  // }
   .letter {
     width: 1rem;
     padding: 1rem;
@@ -48,7 +82,7 @@
       border: 1px solid #a5a5a5;
       text-align: center;
       border-radius: 5px;
-      background: white;
+      color: #fff;
     }
   }
   .position--hover {
