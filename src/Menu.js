@@ -18,10 +18,13 @@ class Menu extends Component {
     this.selectDraw = this.selectDraw.bind(this);
     this.selectDraw = this.selectDraw.bind(this);
     this.closeMenu = this.closeMenu.bind(this);
+    this.toggleSignIn = this.toggleSignIn.bind(this);
   }
 
   toggleSignIn() {
+    const _this = this;
     if (!auth.currentUser) {
+      console.log('current auth', auth.currentUser);
 
       authprovider.addScope('https://www.googleapis.com/auth/plus.login');
 
@@ -38,6 +41,7 @@ class Menu extends Component {
       });
     } else {
       // signout
+      _this.props.signOut();
       auth.signOut();
     }
   }
@@ -86,11 +90,11 @@ class Menu extends Component {
           <h1 onClick={ this.closeMenu }><span>Flip</span>Draw</h1>
           { !this.props.gameId && <h2 className="menu__title">Start a new game.</h2> }
           <div className="menu__userImage">
-            { this.props.userImage && <img src={ this.props.userImage } alt="user avatar" /> }
+            { auth.currentUser && <img src={ this.props.userImage } alt="user avatar" /> }
           </div>
           { !this.props.gameId && <NewGame selectDraw={ this.selectDraw } selectGuess={ this.selectGuess } /> }
           <button className="menu__btn" id="quickstart-sign-in" onClick={ this.toggleSignIn }>
-            { !this.props.auth ? 'Sign in with Google' : 'Sign Out' }
+            { !auth.currentUser ? 'Sign in with Google' : 'Sign Out' }
           </button>
         </div>
       </div>

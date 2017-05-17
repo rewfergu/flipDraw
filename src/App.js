@@ -10,9 +10,6 @@ class App extends Component {
   constructor(props) {
     super(props);
 
-    // this.app = firebase.initializeApp(FirebaseConfig);
-    // this.fb = this.app.database();
-
     this.state = {
       auth: false,
       email: '',
@@ -45,6 +42,7 @@ class App extends Component {
     this.resetGame = this.resetGame.bind(this);
     this.gameOver = this.gameOver.bind(this);
     this.playAgain = this.playAgain.bind(this);
+    this.signOut = this.signOut.bind(this);
 
 
     // this.title = document.getElementById('drawingTitle');
@@ -124,7 +122,7 @@ class App extends Component {
         }
       } else {
         console.log('user not logged in');
-        this.setState({
+        _this.setState({
           showMenu: true
         });
       }
@@ -328,13 +326,23 @@ class App extends Component {
     });
   }
 
+  signOut() {
+    // clear auth data in state
+    this.setState({
+      auth: false,
+      uid: null,
+      userImage: null,
+      displayName: null
+    });
+  }
+
   render() {
     return (
       <div className="App">
         <div className="wrapper">
 
           { this.state.showMenu && <Menu auth={ this.state.auth } uid={ this.state.uid } closeMenu={ this.closeMenu } gameId={ this.state.gameId } setupDrawPlayer={ this.setupDrawPlayer } setupGuessPlayer={ this.setupGuessPlayer }
-                                     userImage={ this.state.userImage } /> }
+                                     userImage={ this.state.userImage } signOut={this.signOut} /> }
 
           { this.state.completed && this.resetGame() }
 
