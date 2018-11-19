@@ -40,24 +40,21 @@ class Menu extends Component {
 
   setupGame(role) {
     // const _this = this;
-    const gameRef = database.ref().push();
     const currentAnimal = randomAnimal();
-    // gameRef.set({
-    //   currentAnimal: currentAnimal,
-    //   players: {
-    //     player1: {
-    //       id: this.props.uid,
-    //       role: role
-    //     }
-    //   }
-    // });
-
-    gameRef.set({
+    const gameRef = database.ref().push({
       currentAnimal: currentAnimal,
       completed: false,
       player1: role,
       [this.props.uid]: role,
     });
+
+    // gameRef.set({
+    //   currentAnimal: currentAnimal,
+    //   completed: false,
+    //   player1: role,
+    //   [this.props.uid]: role,
+    // });
+
     var path = 'index.html?id=' + gameRef.key;
     window.location = path;
   }

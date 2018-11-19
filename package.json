@@ -9,13 +9,13 @@
     "jquery": "^3.2.1",
     "jquery-ui": "^1.12.1",
     "jquery-ui-touch-punch-c": "^1.4.0",
-    "paper": "^0.11.3",
+    "node-sass": "^4.10.0",
+    "paper": "^0.11.8",
     "react": "^15.5.4",
     "react-dom": "^15.5.4",
     "react-dragula": "^1.1.17"
   },
   "devDependencies": {
-    "node-sass": "^4.5.2",
     "npm-run-all": "^4.0.2",
     "react-scripts": "0.9.5"
   },

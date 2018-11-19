@@ -27,10 +27,14 @@ body, h1, h2, h3, button {
   position: relative;
   justify-content: space-between;
   padding: 1rem;
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.3);
   width: 100%;
   z-index: 2;
   box-sizing: border-box;
+}
+
+.gameTitle {
+  font-weight: 700;
 }
 
 .userImage {
