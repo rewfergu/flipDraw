@@ -1,7 +1,18 @@
 import React, { Component } from 'react';
 import Menu from './Menu';
 import Letters from './Letters';
-import { database, auth, } from './firebase.config';
+import {
+  ref,
+  get,
+  onChildAdded,
+  onChildChanged,
+  onValue,
+  push,
+  set,
+  update,
+} from 'firebase/database';
+import { onAuthStateChanged } from 'firebase/auth';
+import { database, auth } from './firebase.config';
 import Paper from 'paper';
 import randomAnimal from './Animals';
 
@@ -17,7 +28,7 @@ class App extends Component {
       password: '',
       uid: '',
       userImage: '',
-      gameId: null,
+      gameId: this.getUrlVars()['id'] || null,
       showMenu: true,
       completed: false
     };
@@ -52,18 +63,6 @@ class App extends Component {
     return vars;
   };
 
-  componentWillMount() {
-    this.setState({
-      gameId: this.getUrlVars()['id']
-    }, () => {
-      console.log('gameId', this.state.gameId);
-    });
-  }
-
-  componentWillUpdate() {
-    
-  }
-
   componentDidMount() {
     // setup Paper.js
     //Paper.install(window);
@@ -88,15 +87,15 @@ class App extends Component {
       });
 
       // setup firebase reference to this game
-      this.gameRef = database.ref().child(this.state.gameId);
+      this.gameRef = ref(database, this.state.gameId);
 
       // setup firebase response to path data
       this.pathReference = {};
-      this.firebasePathsRef = this.gameRef.child('paths');
+      this.firebasePathsRef = ref(database, `${this.state.gameId}/paths`);
     }
 
 
-    auth.onAuthStateChanged(function(user) {
+    onAuthStateChanged(auth, function(user) {
       if (user) {
 
         console.log('user is signed in', user);
@@ -120,7 +119,7 @@ class App extends Component {
     });
 
 
-    this.firebasePathsRef.on('child_changed', function(snapshot) {
+    onChildChanged(this.firebasePathsRef, function(snapshot) {
       var firebaseData = snapshot.val();
       //console.log(firebaseData.path);
       _this.pathReference[snapshot.key].pathData = firebaseData.path;
@@ -128,7 +127,7 @@ class App extends Component {
     });
 
 
-    this.firebasePathsRef.on('child_added', function(snapshot) {
+    onChildAdded(this.firebasePathsRef, function(snapshot) {
       var firebaseData = snapshot.val();
       _this.pathReference[snapshot.key] = new Paper.Path();
       _this.pathReference[snapshot.key].pathData = firebaseData.path;
@@ -138,7 +137,7 @@ class App extends Component {
     });
 
 
-    this.gameRef.child('completed').on('value', function(snapshot) {
+    onValue(ref(database, `${this.state.gameId}/completed`), function(snapshot) {
       _this.setState({completed: snapshot.val()});
       
       if (snapshot.val() === true) {
@@ -152,7 +151,7 @@ class App extends Component {
       });
 
 
-      _this.gameRef.update({
+      update(_this.gameRef, {
         [_this.state.uid]: _this.state.me,
         player1: newPlayer1,
         currentAnimal
@@ -168,7 +167,7 @@ class App extends Component {
     });
 
     // get current word from firebase
-    this.gameRef.child('currentAnimal').on('value', function(snapshot) {
+    onValue(ref(database, `${this.state.gameId}/currentAnimal`), function(snapshot) {
       _this.setState({
         currentAnimal: snapshot.val()
       }, function() {
@@ -181,7 +180,7 @@ class App extends Component {
   setupGameFromFirebase(user) {
     const _this = this;
 
-    this.gameRef.once('value').then(function(snapshot) {
+    get(this.gameRef).then(function(snapshot) {
       const gameData = snapshot.val();
 
       // who am I?
@@ -196,7 +195,7 @@ class App extends Component {
         // unknown
         // I'm the opposite of player1
         myRole = gameData.player1 * -1;
-        _this.gameRef.update({
+        update(_this.gameRef, {
           [user.uid]: myRole
         });
       }
@@ -230,7 +229,7 @@ class App extends Component {
     const drawWidth = window.canvas.offsetWidth;
 
     // send data to firebase
-    this.gameRef.update({
+    update(this.gameRef, {
       drawHeight: drawHeight,
       drawWidth: drawWidth
     });
@@ -254,7 +253,7 @@ class App extends Component {
           fullySelected: true
         });
 
-        _this.firebasePath = _this.firebasePathsRef.push();
+        _this.firebasePath = push(_this.firebasePathsRef);
         _this.pathReference[_this.firebasePath.key] = new Paper.Path();
       }
     }
@@ -264,7 +263,7 @@ class App extends Component {
     tool.onMouseDrag = function(event) {
       if (_this.state.me === 1) {
         _this.path.add(event.point);
-        _this.firebasePath.set({
+        set(_this.firebasePath, {
           path: _this.path.pathData
         });
       }
@@ -293,7 +292,7 @@ class App extends Component {
   }
 
   gameOver() {
-    this.gameRef.update({
+    update(this.gameRef, {
       completed: true,
       paths: [],
     });
@@ -312,7 +311,7 @@ class App extends Component {
   }
 
   playAgain() {
-    this.gameRef.update({
+    update(this.gameRef, {
       completed: false,
     });
   }

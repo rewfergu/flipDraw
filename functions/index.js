@@ -1,8 +1,11 @@
-var functions = require('firebase-functions');
+const { onRequest } = require('firebase-functions/v2/https');
+const { setGlobalOptions } = require('firebase-functions/v2');
 
-// // Create and Deploy Your First Cloud Functions
-// // https://firebase.google.com/docs/functions/write-firebase-functions
+setGlobalOptions({ maxInstances: 10 });
+
+// Create and deploy your first Cloud Function:
+// https://firebase.google.com/docs/functions/write-firebase-functions
 //
-// exports.helloWorld = functions.https.onRequest((request, response) => {
-//  response.send("Hello from Firebase!");
+// exports.helloWorld = onRequest((request, response) => {
+//   response.send('Hello from Firebase!');
 // });

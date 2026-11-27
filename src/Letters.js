@@ -2,9 +2,6 @@ import React, { Component } from 'react';
 // import Paper from 'paper';
 import Dragula from 'react-dragula';
 
-// import 'jquery-ui';
-// import 'jquery-ui-touch-punch-c';
-
 class Letters extends Component {
   constructor(props) {
     super(props);
@@ -27,34 +24,6 @@ class Letters extends Component {
     this.drake.on('drop', function(el, target) {
       _this.submitPosition(el, target);
     });
-  }
-
-  componentWillMount() {
-
-
-    // let getWidth = this.props.gameRef.child('drawWidth').once('value').then(function(data) {
-    //   return data.val();
-    // });
-    // let getHeight = this.props.gameRef.child('drawHeight').once('value').then(function(data) {
-    //   return data.val();
-    // });
-
-    // Promise.all([getHeight, getWidth]).then(values => {
-    //   let drawWidth = values[1];
-    //   let drawHeight = values[0];
-    //   // const aspectRatio = drawWidth / drawHeight;
-
-    //   console.log('values', values);
-    //   console.log('drawWidth', values[0]);
-    //   console.log('drawHeight', values[1]);
-
-    //   // scale canvas if necessary
-    //   if (drawHeight > window.canvas.offsetHeight) {
-    //     const imageDiff = window.canvas.offsetHeight / drawHeight;
-    //     Paper.view._matrix.scale(imageDiff);
-    //     Paper.view.update();
-    //   }
-    // });
   }
 
   componentDidMount() {
@@ -109,7 +78,7 @@ class Letters extends Component {
     this.drake.containers.push(document.getElementById('letter-pool'));
   }
 
-  componentWillUpdate() {
+  componentDidUpdate() {
     this.drawLetters();
   }
 

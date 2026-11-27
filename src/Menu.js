@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { signInWithPopup, signOut } from 'firebase/auth';
+import { ref, push } from 'firebase/database';
 import { database, auth, authprovider } from './firebase.config';
 import NewGame from './NewGame';
 import randomAnimal from './Animals';
@@ -18,9 +20,7 @@ class Menu extends Component {
     if (!auth.currentUser) {
       console.log('current auth', auth.currentUser);
 
-      authprovider.addScope('https://www.googleapis.com/auth/plus.login');
-
-      auth.signInWithPopup(authprovider).then(function(result) {
+      signInWithPopup(auth, authprovider).then(function(result) {
         // This gives you a Google Access Token. You can use it to access the Google API.
         // var token = result.credential.accessToken;
       }).catch(function(error) {
@@ -34,29 +34,20 @@ class Menu extends Component {
     } else {
       // signout
       _this.props.signOut();
-      auth.signOut();
+      signOut(auth);
     }
   }
 
   setupGame(role) {
-    // const _this = this;
     const currentAnimal = randomAnimal();
-    const gameRef = database.ref().push({
+    const gameRef = push(ref(database), {
       currentAnimal: currentAnimal,
       completed: false,
       player1: role,
       [this.props.uid]: role,
     });
 
-    // gameRef.set({
-    //   currentAnimal: currentAnimal,
-    //   completed: false,
-    //   player1: role,
-    //   [this.props.uid]: role,
-    // });
-
-    var path = 'index.html?id=' + gameRef.key;
-    window.location = path;
+    window.location = 'index.html?id=' + gameRef.key;
   }
 
   selectDraw() {
