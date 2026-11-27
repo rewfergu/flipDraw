@@ -41,15 +41,19 @@ function normalize(value) {
   return (value == null ? '' : String(value)).trim().toLowerCase();
 }
 
-// Seed a brand-new game: pick the word + scrambled letters and open the round.
+// Seed a brand-new game. The server picks the word and the scrambled letters
+// itself and clears any authoritative field a client may have injected in the
+// creation write (a node-level `.write` grant cascades to children, so
+// `currentAnimal`/`letters`/`winner` can arrive at creation time).
 exports.seedGame = onValueCreated('/{gameId}', async (event) => {
   const { gameId } = event.params;
-  const game = event.data.val() || {};
-  const word = game.currentAnimal || pickAnimal();
+  const word = pickAnimal();
   await event.data.ref.update({
     currentAnimal: word,
-    letters: game.letters || scramble(word),
+    letters: scramble(word),
     completed: false,
+    winner: null,
+    guesses: null,
   });
   logger.info('seeded game', { gameId });
 });
@@ -76,7 +80,13 @@ exports.checkGuess = onValueWritten('/{gameId}/guesses/{uid}', async (event) => 
     return;
   }
 
-  await gameRef.update({ completed: true, winner: uid, paths: null });
+  await gameRef.update({
+    completed: true,
+    winner: uid,
+    paths: null,
+    // Don't leave the winning word behind in a broadly-readable node.
+    [`guesses/${uid}`]: null,
+  });
   logger.info('correct guess', { uid });
 });
 
@@ -88,27 +98,43 @@ exports.startRematch = onValueWritten('/{gameId}/rematch', async (event) => {
   }
 
   const gameRef = event.data.after.ref.parent;
-  const game = (await gameRef.get()).val();
-  if (!game || game.rematch !== true) {
-    return; // already handled (trigger is at-least-once)
-  }
-
   const word = pickAnimal();
-  const next = {
-    completed: false,
-    winner: null,
-    paths: null,
-    rematch: null,
-    currentAnimal: word,
-    letters: scramble(word),
-  };
-  // Flip every role (they are exactly 1 / -1); leaves metrics untouched.
-  for (const key of Object.keys(game)) {
-    if (game[key] === 1 || game[key] === -1) {
-      next[key] = game[key] * -1;
-    }
-  }
 
-  await gameRef.update(next);
+  // A transaction both checks the request and performs the flip atomically, so
+  // a duplicate delivery (database triggers are at-least-once) or two racing
+  // requests cannot flip the roles twice.
+  const result = await gameRef.transaction((game) => {
+    // The first attempt can run against an empty local cache. Returning the
+    // current (absent) value lets the SDK reconcile with the server and retry
+    // rather than aborting for good.
+    if (game === null) {
+      return null;
+    }
+    if (game.rematch !== true) {
+      return; // abort — this request has already been handled
+    }
+
+    const next = {
+      ...game,
+      completed: false,
+      winner: null,
+      paths: null,
+      guesses: null,
+      rematch: null,
+      currentAnimal: word,
+      letters: scramble(word),
+    };
+    // Flip every role (they are exactly 1 / -1); metrics are left untouched.
+    for (const key of Object.keys(next)) {
+      if (next[key] === 1 || next[key] === -1) {
+        next[key] = next[key] * -1;
+      }
+    }
+    return next;
+  });
+
+  if (!result.committed) {
+    return;
+  }
   logger.info('started rematch', { gameId });
 });

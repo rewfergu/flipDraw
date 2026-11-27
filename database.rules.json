@@ -13,7 +13,7 @@
       "currentAnimal": {
         ".read": "auth != null && data.parent().child(auth.uid).val() === 1",
         ".write": false,
-        ".validate": "newData.isString()"
+        ".validate": "newData.isString() && newData.val().length <= 32"
       },
 
       // Everything else is not secret; any signed-in user who knows the id may
@@ -21,7 +21,7 @@
       "letters": {
         ".read": "auth != null",
         ".write": false,
-        ".validate": "newData.isString()"
+        ".validate": "newData.isString() && newData.val().length <= 16"
       },
 
       "completed": {
@@ -44,13 +44,13 @@
       "drawHeight": {
         ".read": "auth != null",
         ".write": "auth != null && data.parent().child(auth.uid).exists()",
-        ".validate": "newData.isNumber()"
+        ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 10000"
       },
 
       "drawWidth": {
         ".read": "auth != null",
         ".write": "auth != null && data.parent().child(auth.uid).exists()",
-        ".validate": "newData.isNumber()"
+        ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 10000"
       },
 
       "paths": {
@@ -58,7 +58,14 @@
         ".write": "auth != null && data.parent().child(auth.uid).exists()",
         "$pathId": {
           ".write": "auth != null && data.parent().parent().child(auth.uid).exists()",
-          ".validate": "newData.hasChildren(['path'])"
+          ".validate": "newData.hasChildren(['path'])",
+          "path": {
+            ".validate": "newData.isString() && newData.val().length <= 20000"
+          },
+          // A path node carries exactly one child.
+          "$extra": {
+            ".validate": false
+          }
         }
       },
 
@@ -67,21 +74,30 @@
         ".read": "auth != null",
         "$uid": {
           ".write": "auth != null && $uid === auth.uid && data.parent().parent().child(auth.uid).val() === -1",
-          ".validate": "newData.isString()"
+          ".validate": "newData.isString() && newData.val().length <= 32"
         }
       },
 
-      // A participant asks for a new round; startRematch does the work.
+      // A participant may ask for a new round — but only once the current one
+      // has been won, so a rematch cannot be spammed mid-draw.
       "rematch": {
         ".read": "auth != null",
-        ".write": "auth != null && data.parent().child(auth.uid).exists()",
+        ".write": "auth != null && data.parent().child(auth.uid).exists() && data.parent().child('completed').val() === true",
         ".validate": "newData.isBoolean()"
       },
 
-      // A player's own role slot.
+      // A player may claim their own seat exactly once, and it can never be
+      // changed afterwards. The creator claims their side when the game is
+      // created; anyone joining later must take the OPPOSITE side. This is what
+      // keeps the word secret: a guesser cannot promote themselves to drawer to
+      // read `currentAnimal`, and a stranger with the link cannot claim the
+      // drawer's seat.
       "$playerId": {
         ".read": "auth != null",
-        ".write": "auth != null && ($playerId === auth.uid || data.parent().child(auth.uid).exists())",
+        ".write": "auth != null && $playerId === auth.uid && !data.exists() && (
+          !data.parent().exists() ||
+          newData.val() === data.parent().child('player1').val() * -1
+        )",
         ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
       }
     }

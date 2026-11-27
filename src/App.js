@@ -126,8 +126,12 @@ class App extends Component {
         }
       } else {
         console.log('user not logged in');
+        // Drop the previous session's listeners so they cannot linger.
+        _this._detachGameListeners();
+        _this._detachRoleListeners();
         _this.setState({
-          showMenu: true
+          showMenu: true,
+          me: null
         });
       }
     }));
@@ -151,17 +155,21 @@ class App extends Component {
     const gameId = this.state.gameId;
     this._detachGameListeners();
 
-    // Stroke relay.
+    // Stroke relay. Malformed payloads are ignored rather than handed to Paper.
     _this._gameUnsubs.push(onChildChanged(ref(database, `${gameId}/paths`), function(snapshot) {
       const data = snapshot.val();
-      if (_this.pathReference[snapshot.key]) {
-        _this.pathReference[snapshot.key].pathData = data.path;
-        Paper.view.update();
+      if (!data || typeof data.path !== 'string' || !_this.pathReference[snapshot.key]) {
+        return;
       }
+      _this.pathReference[snapshot.key].pathData = data.path;
+      Paper.view.update();
     }));
 
     _this._gameUnsubs.push(onChildAdded(ref(database, `${gameId}/paths`), function(snapshot) {
       const data = snapshot.val();
+      if (!data || typeof data.path !== 'string') {
+        return;
+      }
       _this.pathReference[snapshot.key] = new Paper.Path();
       _this.pathReference[snapshot.key].pathData = data.path;
       _this.pathReference[snapshot.key].strokeColor = '#3b6cb7';
@@ -287,6 +295,7 @@ class App extends Component {
 
         _this.firebasePath = push(_this.firebasePathsRef);
         _this.pathReference[_this.firebasePath.key] = new Paper.Path();
+        _this.lastPathWrite = 0;
       }
     }
 
@@ -295,17 +304,27 @@ class App extends Component {
     tool.onMouseDrag = function(event) {
       if (_this.state.me === 1) {
         _this.path.add(event.point);
+        // Coalesce: writing on every mousemove re-uploads the whole growing
+        // path and broadcasts it, which is a large, trivially scriptable cost.
+        const now = Date.now();
+        if (now - _this.lastPathWrite < 100) {
+          return;
+        }
+        _this.lastPathWrite = now;
         set(_this.firebasePath, {
           path: _this.path.pathData
         });
       }
     };
 
-    // When the mouse is released, we simplify the path:
+    // When the mouse is released, persist the finished stroke — the last
+    // coalesced write may predate the final points.
     tool.onMouseUp = function(event) {
-      if (_this.state.me === 1) {
-        //path.simplify(10);
+      if (_this.state.me === 1 && _this.path && _this.firebasePath) {
         _this.path.fullySelected = false;
+        set(_this.firebasePath, {
+          path: _this.path.pathData
+        });
         _this.path.remove();
       }
     }
@@ -357,7 +376,8 @@ class App extends Component {
       auth: false,
       uid: null,
       userImage: null,
-      displayName: null
+      displayName: null,
+      me: null
     });
   }
 

@@ -97,7 +97,15 @@ The client may only *propose* actions; the server owns the truth.
 **Security rules** ([`database.rules.json`](database.rules.json), wired into
 [`firebase.json`](firebase.json)) require an authenticated user, let a player
 create a game only by claiming their own role, and make the authoritative fields
-(`currentAnimal`, `completed`, `winner`) **read-only to clients**.
+(`currentAnimal`, `completed`, `winner`) **read-only to clients**. A seat can be
+claimed only once, and a joiner must take the side **opposite** the creator — so
+a guesser cannot promote themselves to drawer in order to read the word.
+
+Writes are also capped (guess/word length, path length, canvas size) and stroke
+writes are coalesced, so a client cannot cheaply flood the database.
+
+**Not yet in place:** App Check (needs a reCAPTCHA site key and enforcement in
+the console), rate limiting, and a cap on the number of strokes per round.
 
 **Cloud Functions** ([`functions/index.js`](functions/index.js)) write those
 fields with the Admin SDK:

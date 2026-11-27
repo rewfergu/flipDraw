@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, mock, setSystemTime, spyOn, test } from 'bun:test';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 
@@ -13,8 +13,8 @@ const fake = {
   values: new Map(),
 };
 
-function record(path, cb) {
-  const entry = { path, cb, active: true };
+function record(event, path, cb) {
+  const entry = { event, path, cb, active: true };
   fake.listeners.push(entry);
   return () => {
     entry.active = false;
@@ -36,9 +36,9 @@ mock.module('firebase/database', () => ({
     return Promise.resolve();
   },
   push: (r) => ({ path: `${r.path}/pushed`, key: 'pushed' }),
-  onValue: (r, cb) => record(r.path, cb),
-  onChildAdded: (r, cb) => record(r.path, cb),
-  onChildChanged: (r, cb) => record(r.path, cb),
+  onValue: (r, cb) => record('value', r.path, cb),
+  onChildAdded: (r, cb) => record('child_added', r.path, cb),
+  onChildChanged: (r, cb) => record('child_changed', r.path, cb),
 }));
 
 mock.module('firebase/auth', () => ({
@@ -60,11 +60,25 @@ mock.module('./firebase.config', () => ({
   authprovider: {},
 }));
 
+const tools = [];
+const paperPaths = [];
+
 mock.module('paper', () => ({
   default: {
     setup() {},
-    Tool: class {},
-    Path: class {},
+    Tool: class {
+      constructor() {
+        tools.push(this);
+      }
+    },
+    Path: class {
+      constructor() {
+        this.pathData = null;
+        paperPaths.push(this);
+      }
+      add() {}
+      remove() {}
+    },
     view: { update() {} },
     project: { activeLayer: { children: [] } },
   },
@@ -80,6 +94,8 @@ let logSpy;
 
 beforeEach(() => {
   logSpy = spyOn(console, 'log').mockImplementation(() => {});
+  tools.length = 0;
+  paperPaths.length = 0;
   fake.listeners = [];
   fake.unsubscribed = 0;
   fake.writes = [];
@@ -120,6 +136,9 @@ async function signIn(uid) {
 }
 
 const listenerFor = (path) => fake.listeners.filter((l) => l.path === path && l.active).pop();
+
+const childListener = (event, path) =>
+  fake.listeners.filter((l) => l.event === event && l.path === path && l.active).pop();
 
 describe('App', () => {
   test('registers game listeners only after sign-in and detaches them on unmount', async () => {
@@ -194,5 +213,78 @@ describe('App', () => {
 
     expect(activePaths()).toContain('game5/currentAnimal');
     expect(activePaths()).not.toContain('game5/letters');
+  });
+
+  test('stroke writes are coalesced, and the finished stroke is persisted', async () => {
+    setGame('game6');
+    fake.values.set('game6/u6', 1);
+    fake.values.set('game6/player1', 1);
+
+    renderApp();
+    await signIn('u6');
+    await act(async () => listenerFor('game6/u6').cb({ val: () => 1, key: 'u6' }));
+
+    const tool = tools[tools.length - 1];
+    const t0 = Date.parse('2026-01-01T00:00:00Z');
+    setSystemTime(t0);
+
+    const before = fake.writes.length;
+    act(() => tool.onMouseDown({ point: { x: 0, y: 0 } }));
+    for (let i = 1; i <= 50; i++) {
+      setSystemTime(t0 + i * 10); // 50 drag events, 10ms apart
+      act(() => tool.onMouseDrag({ point: { x: i, y: i } }));
+    }
+    const dragWrites = fake.writes.length - before;
+
+    expect(dragWrites).toBeGreaterThan(0); // it still streams while drawing
+    expect(dragWrites).toBeLessThan(10); // ...but coalesced (not 50 writes)
+
+    const beforeUp = fake.writes.length;
+    act(() => tool.onMouseUp({ point: { x: 51, y: 51 } }));
+    expect(fake.writes.length).toBe(beforeUp + 1); // the final stroke is saved
+  });
+
+  test('incoming strokes are rendered, and malformed ones are ignored', async () => {
+    setGame('game7');
+    fake.values.set('game7/u7', -1);
+    fake.values.set('game7/player1', 1);
+
+    renderApp();
+    await signIn('u7');
+
+    const added = childListener('child_added', 'game7/paths');
+    const changed = childListener('child_changed', 'game7/paths');
+
+    const before = paperPaths.length;
+    await act(async () => added.cb({ key: 'p1', val: () => ({ path: 'M0 0L1 1' }) }));
+    expect(paperPaths.length).toBe(before + 1);
+    const rendered = paperPaths[paperPaths.length - 1];
+    expect(rendered.pathData).toBe('M0 0L1 1');
+
+    // The same stroke keeps growing in place...
+    await act(async () => changed.cb({ key: 'p1', val: () => ({ path: 'M0 0L9 9' }) }));
+    expect(rendered.pathData).toBe('M0 0L9 9');
+
+    // ...and malformed payloads are dropped, not handed to Paper.
+    await act(async () => added.cb({ key: 'p2', val: () => ({ path: 42 }) }));
+    await act(async () => changed.cb({ key: 'p1', val: () => ({ path: null }) }));
+    expect(paperPaths.length).toBe(before + 1);
+    expect(rendered.pathData).toBe('M0 0L9 9');
+  });
+
+  test('signing out detaches the game listeners', async () => {
+    setGame('game8');
+    fake.values.set('game8/u8', 1);
+    fake.values.set('game8/player1', 1);
+
+    renderApp();
+    await signIn('u8');
+    expect(activePaths().length).toBeGreaterThan(0);
+
+    await act(async () => {
+      for (const cb of fake.authCallbacks) cb(null);
+    });
+
+    expect(activePaths()).toHaveLength(0);
   });
 });

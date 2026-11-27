@@ -100,12 +100,14 @@ describe('server-side game logic (Cloud Functions)', () => {
       'completed',
     );
     expect((await get(ref(bob, 'guess-game/winner'))).val()).toBe('guess-bob');
+    // ... and the winning word is not left behind in a broadly-readable node.
+    expect((await get(ref(bob, 'guess-game/guesses/guess-bob'))).val()).toBe(null);
   });
 
   fnTest('startRematch swaps the roles, picks a new word and clears the board', async () => {
     const alice = dbAs('rematch-alice');
     await set(ref(alice, 'rematch-game'), { player1: 1, 'rematch-alice': 1 });
-    await waitFor(
+    const word = await waitFor(
       () => get(ref(alice, 'rematch-game/currentAnimal')).then((s) => s.val()),
       (v) => typeof v === 'string' && v.length > 0,
       'word',
@@ -114,6 +116,14 @@ describe('server-side game logic (Cloud Functions)', () => {
     const bob = dbAs('rematch-bob');
     await update(ref(bob, 'rematch-game'), { 'rematch-bob': -1 });
 
+    // Finish the round first: a rematch may only be requested once it is over.
+    await set(ref(bob, 'rematch-game/guesses/rematch-bob'), word);
+    await waitFor(
+      () => get(ref(alice, 'rematch-game/completed')).then((s) => s.val()),
+      (v) => v === true,
+      'completed',
+    );
+
     await set(ref(bob, 'rematch-game/rematch'), true);
 
     await waitFor(
@@ -121,9 +131,34 @@ describe('server-side game logic (Cloud Functions)', () => {
       (v) => v === -1,
       'alice flipped to guesser',
     );
+    // The roles must have flipped exactly once (not back and forth).
     expect((await get(ref(bob, 'rematch-game/rematch-bob'))).val()).toBe(1);
     expect((await get(ref(alice, 'rematch-game/rematch'))).val()).toBe(null);
     expect((await get(ref(alice, 'rematch-game/completed'))).val()).toBe(false);
+  }, 30_000);
+
+  fnTest('seedGame ignores a word and letters injected at creation', async () => {
+    const alice = dbAs('inject-alice');
+
+    // A node-level write grant cascades to children, so a creator *can* inject
+    // authoritative fields at creation — the server must discard them.
+    await set(ref(alice, 'inject-game'), {
+      player1: 1,
+      'inject-alice': 1,
+      currentAnimal: 'hackedword',
+      letters: 'hackedword',
+      winner: 'inject-alice',
+    });
+
+    const word = await waitFor(
+      () => get(ref(alice, 'inject-game/currentAnimal')).then((s) => s.val()),
+      (v) => typeof v === 'string' && v.length > 0 && v !== 'hackedword',
+      'a server-picked word',
+    );
+
+    expect(word).not.toBe('hackedword');
+    expect((await get(ref(alice, 'inject-game/letters'))).val()).not.toBe('hackedword');
+    expect((await get(ref(alice, 'inject-game/winner'))).val()).toBe(null);
   });
 
   fnTest('the word is secret to the guesser, but the letters are not', async () => {

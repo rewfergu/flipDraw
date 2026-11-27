@@ -22,9 +22,11 @@ jobs:
           java-version: '21'
 
       - name: Install dependencies
-        run: |
-          bun install
-          bun install --cwd functions
+        run: bun install --frozen-lockfile
+
+      - name: Install functions dependencies
+        working-directory: functions
+        run: bun install --frozen-lockfile
 
       # src/firebase.config.js is git-ignored; the app uses the local emulators.
       - name: Configure Firebase for the emulators
@@ -37,7 +39,7 @@ jobs:
         run: bun test
 
       - name: Install Firebase CLI
-        run: bun add -g firebase-tools
+        run: bun add -g firebase-tools@15.37.0
 
       - name: Database rules tests
         run: bun run test:rules
