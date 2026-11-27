@@ -49,8 +49,28 @@ deploys to Firebase Hosting).
 
 ## Test
 
+Unit/component tests (offline):
+
 ```sh
 bun test
+```
+
+Database security-rules tests, against the Firebase Database emulator
+(requires the Firebase CLI and a **JDK 21+**):
+
+```sh
+bun run test:rules
+```
+
+## Database rules
+
+Security rules live in [`database.rules.json`](database.rules.json) and are wired
+into [`firebase.json`](firebase.json). They require an authenticated user, let a
+player create a game only by claiming their own role, and let only the two
+participants read and write a game. Deploy them with:
+
+```sh
+firebase deploy --only database
 ```
 
 ## Cloud Functions

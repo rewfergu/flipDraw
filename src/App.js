@@ -28,15 +28,25 @@ class App extends Component {
       password: '',
       uid: '',
       userImage: '',
+      displayName: '',
       gameId: this.getUrlVars()['id'] || null,
       showMenu: true,
-      completed: false
+      completed: false,
+      me: null,
+      player1: null,
+      currentAnimal: ''
     };
 
     this.firebasePathsRef = null;
     this.firebasePath = null;
     this.path = null;
     this.pathReference = null;
+    this.drawToolReady = false;
+    this._rematching = false;
+
+    // Firebase unsubscribe callbacks, invoked on unmount.
+    this._unsubs = [];
+    this._gameUnsubs = [];
 
     this.gameRef = null;
     this.openMenu = this.openMenu.bind(this);
@@ -95,7 +105,7 @@ class App extends Component {
     }
 
 
-    onAuthStateChanged(auth, function(user) {
+    this._unsubs.push(onAuthStateChanged(auth, function(user) {
       if (user) {
 
         console.log('user is signed in', user);
@@ -117,33 +127,33 @@ class App extends Component {
           showMenu: true
         });
       }
-    });
+    }));
 
 
     // Only watch game data once a game reference exists; the landing page
     // (no `?id=` in the URL) has none.
     if (this.gameRef) {
-    onChildChanged(this.firebasePathsRef, function(snapshot) {
+    this._unsubs.push(onChildChanged(this.firebasePathsRef, function(snapshot) {
       var firebaseData = snapshot.val();
       //console.log(firebaseData.path);
       _this.pathReference[snapshot.key].pathData = firebaseData.path;
       Paper.view.update();
-    });
+    }));
 
 
-    onChildAdded(this.firebasePathsRef, function(snapshot) {
+    this._unsubs.push(onChildAdded(this.firebasePathsRef, function(snapshot) {
       var firebaseData = snapshot.val();
       _this.pathReference[snapshot.key] = new Paper.Path();
       _this.pathReference[snapshot.key].pathData = firebaseData.path;
       _this.pathReference[snapshot.key].strokeColor = '#3b6cb7';
       _this.pathReference[snapshot.key].strokeWidth = 3;
       Paper.view.update();
-    });
+    }));
 
 
     // Round over flag. Roles and the word are watched separately in
     // watchGame(); a rematch is applied by whoever clicks "Play Again".
-    onValue(ref(database, `${this.state.gameId}/completed`), function(snapshot) {
+    this._unsubs.push(onValue(ref(database, `${this.state.gameId}/completed`), function(snapshot) {
       _this.setState({ completed: !!snapshot.val() });
 
       if (snapshot.val() === true) {
@@ -151,28 +161,36 @@ class App extends Component {
         Paper.project.activeLayer.children = [];
         Paper.view.update();
       }
-    });
+    }));
 
     // Current word (changes at the start of every round).
-    onValue(ref(database, `${this.state.gameId}/currentAnimal`), function(snapshot) {
+    this._unsubs.push(onValue(ref(database, `${this.state.gameId}/currentAnimal`), function(snapshot) {
       _this.setState({ currentAnimal: snapshot.val() });
-    });
+    }));
     }
 
   } // component did mount
+
+  componentWillUnmount() {
+    // Detach every Firebase listener so remounts / HMR don't stack handlers.
+    this._unsubs.forEach(function(unsubscribe) { unsubscribe(); });
+    this._unsubs = [];
+    this._detachGameListeners();
+  }
 
   // Watch the live game state so a rematch (which swaps roles) is reflected
   // for both players.
   watchGame(user) {
     const _this = this;
+    this._detachGameListeners();
 
-    onValue(ref(database, `${this.state.gameId}/player1`), function(snapshot) {
+    this._gameUnsubs.push(onValue(ref(database, `${this.state.gameId}/player1`), function(snapshot) {
       if (snapshot.val() != null) {
         _this.setState({ player1: snapshot.val() });
       }
-    });
+    }));
 
-    onValue(ref(database, `${this.state.gameId}/${user.uid}`), function(snapshot) {
+    this._gameUnsubs.push(onValue(ref(database, `${this.state.gameId}/${user.uid}`), function(snapshot) {
       const role = snapshot.val();
       if (role !== 1 && role !== -1) {
         return;
@@ -186,7 +204,12 @@ class App extends Component {
       } else {
         _this.drawToolReady = false;
       }
-    });
+    }));
+  }
+
+  _detachGameListeners() {
+    this._gameUnsubs.forEach(function(unsubscribe) { unsubscribe(); });
+    this._gameUnsubs = [];
   }
 
   setupGameFromFirebase(user) {

@@ -11,11 +11,12 @@
     "start": "bun run dev",
     "dev": "bun run --parallel watch:css dev:app",
     "dev:app": "bun ./index.html",
-    "build": "bun run build:css && bun build ./index.html --outdir ./build --minify",
+    "build": "bun run build:css && rm -rf build && bun build ./index.html --outdir ./build --minify",
     "build:css": "sass --no-source-map src/scss/style.scss src/css/style.css",
     "watch:css": "sass --no-source-map --watch src/scss/style.scss:src/css/style.css",
-    "test": "bun test",
-    "test:watch": "bun test --watch"
+    "test": "bun test src",
+    "test:watch": "bun test --watch src",
+    "test:rules": "firebase emulators:exec --only database --project demo-flipdraw \"FLIPDRAW_RULES=1 bun test ./test/rules.test.js\""
   },
   "dependencies": {
     "animals": "^0.0.3",
@@ -27,6 +28,7 @@
     "unique-random": "^4.0.0"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
     "@happy-dom/global-registrator": "^21.0.4",
     "sass": "^1.108.2"
   }
