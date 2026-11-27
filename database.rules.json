@@ -4,43 +4,57 @@
     ".write": false,
 
     "$gameId": {
-      ".read": "auth != null",
       // A game may be created (and only created) by a signed-in user who
-      // claims a role for themselves. Everything authoritative is written by
-      // the Cloud Functions using the Admin SDK, which bypasses these rules.
+      // claims a role for themselves. Authoritative fields are written by the
+      // Cloud Functions using the Admin SDK, which bypasses these rules.
       ".write": "auth != null && !data.exists() && newData.hasChild(auth.uid)",
 
-      // Server-owned: clients may read but not write.
+      // The secret word: readable only by the drawer.
       "currentAnimal": {
+        ".read": "auth != null && data.parent().child(auth.uid).val() === 1",
+        ".write": false,
+        ".validate": "newData.isString()"
+      },
+
+      // Everything else is not secret; any signed-in user who knows the id may
+      // read it, but only participants may write.
+      "letters": {
+        ".read": "auth != null",
         ".write": false,
         ".validate": "newData.isString()"
       },
 
       "completed": {
+        ".read": "auth != null",
         ".write": false,
         ".validate": "newData.isBoolean()"
       },
 
       "winner": {
+        ".read": "auth != null",
         ".write": false
       },
 
       "player1": {
+        ".read": "auth != null",
         ".write": "auth != null && (!data.parent().exists() || data.parent().child(auth.uid).exists())",
         ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
       },
 
       "drawHeight": {
+        ".read": "auth != null",
         ".write": "auth != null && data.parent().child(auth.uid).exists()",
         ".validate": "newData.isNumber()"
       },
 
       "drawWidth": {
+        ".read": "auth != null",
         ".write": "auth != null && data.parent().child(auth.uid).exists()",
         ".validate": "newData.isNumber()"
       },
 
       "paths": {
+        ".read": "auth != null",
         ".write": "auth != null && data.parent().child(auth.uid).exists()",
         "$pathId": {
           ".write": "auth != null && data.parent().parent().child(auth.uid).exists()",
@@ -59,11 +73,14 @@
 
       // A participant asks for a new round; startRematch does the work.
       "rematch": {
+        ".read": "auth != null",
         ".write": "auth != null && data.parent().child(auth.uid).exists()",
         ".validate": "newData.isBoolean()"
       },
 
+      // A player's own role slot.
       "$playerId": {
+        ".read": "auth != null",
         ".write": "auth != null && ($playerId === auth.uid || data.parent().child(auth.uid).exists())",
         ".validate": "newData.isNumber() && (newData.val() === 1 || newData.val() === -1)"
       }

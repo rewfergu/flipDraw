@@ -63,7 +63,11 @@ describe('server-side game logic (Cloud Functions)', () => {
       'seeded word',
     );
 
+    const letters = (await get(ref(alice, 'seed-game/letters'))).val();
+
     expect(typeof word).toBe('string');
+    expect(typeof letters).toBe('string');
+    expect(letters.length).toBe(word.length);
     expect((await get(ref(alice, 'seed-game/completed'))).val()).toBe(false);
   });
 
@@ -120,5 +124,31 @@ describe('server-side game logic (Cloud Functions)', () => {
     expect((await get(ref(bob, 'rematch-game/rematch-bob'))).val()).toBe(1);
     expect((await get(ref(alice, 'rematch-game/rematch'))).val()).toBe(null);
     expect((await get(ref(alice, 'rematch-game/completed'))).val()).toBe(false);
+  });
+
+  fnTest('the word is secret to the guesser, but the letters are not', async () => {
+    const alice = dbAs('secret-alice');
+    await set(ref(alice, 'secret-game'), { player1: 1, 'secret-alice': 1 });
+    await waitFor(
+      () => get(ref(alice, 'secret-game/currentAnimal')).then((s) => s.val()),
+      (v) => typeof v === 'string' && v.length > 0,
+      'word',
+    );
+
+    const bob = dbAs('secret-bob');
+    await update(ref(bob, 'secret-game'), { 'secret-bob': -1 }); // bob is the guesser
+
+    // The guesser can read the scrambled letters ...
+    const letters = (await get(ref(bob, 'secret-game/letters'))).val();
+    expect(typeof letters).toBe('string');
+
+    // ... but not the word itself.
+    let denied = false;
+    try {
+      await get(ref(bob, 'secret-game/currentAnimal'));
+    } catch (error) {
+      denied = true;
+    }
+    expect(denied).toBe(true);
   });
 });

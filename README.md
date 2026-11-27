@@ -74,7 +74,7 @@ create a game only by claiming their own role, and make the authoritative fields
 **Cloud Functions** ([`functions/index.js`](functions/index.js)) write those
 fields with the Admin SDK:
 
-- `seedGame` — on a new game, picks the word and opens the round.
+- `seedGame` — on a new game, picks the word + scrambled letters and opens the round.
 - `checkGuess` — validates a guess written to `guesses/{uid}` and, on a match,
   sets `completed`/`winner`. A client can no longer assert a win.
 - `startRematch` — on a `rematch` request, swaps the roles and picks a new word.
@@ -86,10 +86,11 @@ firebase deploy --only functions,database
 > Because the word and round flags are now server-owned, the app needs these
 > functions deployed (or the Functions emulator running) to play.
 
-**Known gap:** the guesser's client still receives the word via `currentAnimal`
-(and `Letters` encodes the answer in each slot's `data-letter`), so a determined
-player can still read the answer. Closing it means sending the guesser only
-scrambled `letters` and keeping the answer where only the drawer can read it.
+**The word is a secret.** `currentAnimal` is readable **only by the drawer**;
+the guesser's board is built from a scrambled `letters` string that carries no
+positional hint, so the answer never reaches the guesser's client. The guesser
+assembles a word and submits it; `checkGuess` decides. (Non-secret fields such
+as `letters`, `paths` and `completed` are readable by any signed-in user.)
 
 ## Cloud Functions package
 

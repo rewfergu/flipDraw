@@ -33,7 +33,8 @@ class App extends Component {
       completed: false,
       me: null,
       player1: null,
-      currentAnimal: ''
+      currentAnimal: '',
+      letters: ''
     };
 
     this.firebasePathsRef = null;
@@ -46,6 +47,7 @@ class App extends Component {
     // Firebase unsubscribe callbacks, invoked on unmount.
     this._unsubs = [];
     this._gameUnsubs = [];
+    this._roleUnsubs = [];
 
     this.gameRef = null;
     this.openMenu = this.openMenu.bind(this);
@@ -129,45 +131,6 @@ class App extends Component {
     }));
 
 
-    // Only watch game data once a game reference exists; the landing page
-    // (no `?id=` in the URL) has none.
-    if (this.gameRef) {
-    this._unsubs.push(onChildChanged(this.firebasePathsRef, function(snapshot) {
-      var firebaseData = snapshot.val();
-      //console.log(firebaseData.path);
-      _this.pathReference[snapshot.key].pathData = firebaseData.path;
-      Paper.view.update();
-    }));
-
-
-    this._unsubs.push(onChildAdded(this.firebasePathsRef, function(snapshot) {
-      var firebaseData = snapshot.val();
-      _this.pathReference[snapshot.key] = new Paper.Path();
-      _this.pathReference[snapshot.key].pathData = firebaseData.path;
-      _this.pathReference[snapshot.key].strokeColor = '#3b6cb7';
-      _this.pathReference[snapshot.key].strokeWidth = 3;
-      Paper.view.update();
-    }));
-
-
-    // Round over flag. Roles and the word are watched separately in
-    // watchGame(); a rematch is applied by whoever clicks "Play Again".
-    this._unsubs.push(onValue(ref(database, `${this.state.gameId}/completed`), function(snapshot) {
-      _this.setState({ completed: !!snapshot.val() });
-
-      if (snapshot.val() === true) {
-        // Round over: clear the local canvas. The next round starts blank.
-        Paper.project.activeLayer.children = [];
-        Paper.view.update();
-      }
-    }));
-
-    // Current word (changes at the start of every round).
-    this._unsubs.push(onValue(ref(database, `${this.state.gameId}/currentAnimal`), function(snapshot) {
-      _this.setState({ currentAnimal: snapshot.val() });
-    }));
-    }
-
   } // component did mount
 
   componentWillUnmount() {
@@ -175,35 +138,74 @@ class App extends Component {
     this._unsubs.forEach(function(unsubscribe) { unsubscribe(); });
     this._unsubs = [];
     this._detachGameListeners();
+    this._detachRoleListeners();
   }
 
-  // Watch the live game state so a rematch (which swaps roles) is reflected
-  // for both players.
+  // All game listeners are registered here — i.e. only once we have an
+  // authenticated user. Registering them earlier (before sign-in) would be
+  // denied by the rules and the listener would die.
   watchGame(user) {
     const _this = this;
+    const gameId = this.state.gameId;
     this._detachGameListeners();
 
-    this._gameUnsubs.push(onValue(ref(database, `${this.state.gameId}/player1`), function(snapshot) {
-      if (snapshot.val() != null) {
-        _this.setState({ player1: snapshot.val() });
+    // Stroke relay.
+    _this._gameUnsubs.push(onChildChanged(ref(database, `${gameId}/paths`), function(snapshot) {
+      const data = snapshot.val();
+      if (_this.pathReference[snapshot.key]) {
+        _this.pathReference[snapshot.key].pathData = data.path;
+        Paper.view.update();
       }
     }));
 
-    this._gameUnsubs.push(onValue(ref(database, `${this.state.gameId}/${user.uid}`), function(snapshot) {
+    _this._gameUnsubs.push(onChildAdded(ref(database, `${gameId}/paths`), function(snapshot) {
+      const data = snapshot.val();
+      _this.pathReference[snapshot.key] = new Paper.Path();
+      _this.pathReference[snapshot.key].pathData = data.path;
+      _this.pathReference[snapshot.key].strokeColor = '#3b6cb7';
+      _this.pathReference[snapshot.key].strokeWidth = 3;
+      Paper.view.update();
+    }));
+
+    // Round over flag.
+    _this._gameUnsubs.push(onValue(ref(database, `${gameId}/completed`), function(snapshot) {
+      _this.setState({ completed: !!snapshot.val() });
+      if (snapshot.val() === true) {
+        // Round over: clear the local canvas. The next round starts blank.
+        Paper.project.activeLayer.children = [];
+        Paper.view.update();
+      }
+    }));
+
+    // My own role — it decides what else I may read (word vs letters).
+    _this._gameUnsubs.push(onValue(ref(database, `${gameId}/${user.uid}`), function(snapshot) {
       const role = snapshot.val();
       if (role !== 1 && role !== -1) {
         return;
       }
       _this.setState({ me: role });
-      if (role === 1) {
-        // I'm the draw player for this round.
-        if (!_this.drawToolReady) {
-          _this.setupDrawPlayer();
-        }
-      } else {
-        _this.drawToolReady = false;
-      }
+      _this.watchRole(role);
     }));
+  }
+
+  // The drawer may read the secret word; the guesser only gets the letters.
+  watchRole(role) {
+    const _this = this;
+    this._detachRoleListeners();
+
+    if (role === 1) {
+      _this._roleUnsubs.push(onValue(ref(database, `${this.state.gameId}/currentAnimal`), function(snapshot) {
+        _this.setState({ currentAnimal: snapshot.val() || '' });
+      }));
+      if (!_this.drawToolReady) {
+        _this.setupDrawPlayer();
+      }
+    } else if (role === -1) {
+      _this.drawToolReady = false;
+      _this._roleUnsubs.push(onValue(ref(database, `${this.state.gameId}/letters`), function(snapshot) {
+        _this.setState({ letters: snapshot.val() || '' });
+      }));
+    }
   }
 
   _detachGameListeners() {
@@ -211,35 +213,29 @@ class App extends Component {
     this._gameUnsubs = [];
   }
 
+  _detachRoleListeners() {
+    this._roleUnsubs.forEach(function(unsubscribe) { unsubscribe(); });
+    this._roleUnsubs = [];
+  }
+
+  // Join the game if I have no role yet. Reads only my own slot and player1 —
+  // the whole game node is no longer readable, so the word stays secret.
   setupGameFromFirebase(user) {
     const _this = this;
+    const roleRef = ref(database, `${this.state.gameId}/${user.uid}`);
 
-    get(this.gameRef).then(function(snapshot) {
-      const gameData = snapshot.val();
-
-      // who am I?
-      let myRole = gameData[user.uid];
-
-      if (myRole === 1) {
-        // I'm the draw player — watchGame() sets up the tool for role 1.
-      } else if (myRole === -1) {
-        // I'm the guess player
-      } else {
-        // unknown
-        // I'm the opposite of player1
-        myRole = gameData.player1 * -1;
-        update(_this.gameRef, {
-          [user.uid]: myRole
-        });
+    get(roleRef).then(function(snapshot) {
+      const myRole = snapshot.val();
+      if (myRole === 1 || myRole === -1) {
+        console.log('my role', myRole === 1 ? 'draw' : 'guess');
+        return;
       }
-
-      _this.setState({
-        player1: gameData.player1,
-        me: myRole,
-        currentAnimal: gameData.currentAnimal
+      // No role yet: take the side opposite the creator.
+      return get(ref(database, `${_this.state.gameId}/player1`)).then(function(player1Snap) {
+        const newRole = (player1Snap.val() || 1) * -1;
+        console.log('my role', newRole === 1 ? 'draw' : 'guess');
+        return set(roleRef, newRole);
       });
-
-      console.log('my role', myRole === 1 ? 'draw' : 'guess');
     });
   }
 
@@ -386,7 +382,7 @@ class App extends Component {
           { 
             // <DrawingBoard /> ↑↑↑↑↑↑↑↑
           }
-          { this.state.me === -1 && <Letters submitGuess={this.submitGuess} currentAnimal={this.state.currentAnimal} /> }
+          { this.state.me === -1 && <Letters submitGuess={this.submitGuess} letters={this.state.letters} /> }
         </div>
       </div>
       );

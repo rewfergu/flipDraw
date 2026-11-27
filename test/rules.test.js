@@ -168,4 +168,38 @@ describe('flipDraw database rules', () => {
       await assertFails(asUser('alice', (db) => set(ref(db, 'g-shape/paths/p1'), { nope: 1 })));
     });
   });
+
+  describe('the word is a secret', () => {
+    const withWord = { ...STARTED, currentAnimal: 'otter', letters: 'ottre' };
+
+    rulesTest('the drawer can read the word', async () => {
+      await seed('g-word1', withWord);
+      await assertSucceeds(asUser('alice', (db) => get(ref(db, 'g-word1/currentAnimal'))));
+    });
+
+    rulesTest('the guesser cannot read the word', async () => {
+      await seed('g-word2', withWord);
+      await assertFails(asUser('bob', (db) => get(ref(db, 'g-word2/currentAnimal'))));
+    });
+
+    rulesTest('a non-participant cannot read the word', async () => {
+      await seed('g-word3', withWord);
+      await assertFails(asUser('mallory', (db) => get(ref(db, 'g-word3/currentAnimal'))));
+    });
+
+    rulesTest('the guesser can read the scrambled letters', async () => {
+      await seed('g-letters1', withWord);
+      await assertSucceeds(asUser('bob', (db) => get(ref(db, 'g-letters1/letters'))));
+    });
+
+    rulesTest('an anonymous user cannot read the letters', async () => {
+      await seed('g-letters2', withWord);
+      await assertFails(asUser(null, (db) => get(ref(db, 'g-letters2/letters'))));
+    });
+
+    rulesTest('the letters are not secret (any signed-in user may read them)', async () => {
+      await seed('g-letters3', withWord);
+      await assertSucceeds(asUser('mallory', (db) => get(ref(db, 'g-letters3/letters'))));
+    });
+  });
 });
