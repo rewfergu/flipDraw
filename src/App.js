@@ -119,6 +119,9 @@ class App extends Component {
     });
 
 
+    // Only watch game data once a game reference exists; the landing page
+    // (no `?id=` in the URL) has none.
+    if (this.gameRef) {
     onChildChanged(this.firebasePathsRef, function(snapshot) {
       var firebaseData = snapshot.val();
       //console.log(firebaseData.path);
@@ -142,6 +145,11 @@ class App extends Component {
       
       if (snapshot.val() === true) {
         // game over
+        // Wait until auth/role state exists before rewriting the game
+        // (this handler fires on reload before setupGameFromFirebase resolves).
+        if (!_this.state.uid || _this.state.me == null) {
+          return;
+        }
 
       const currentAnimal = randomAnimal();
       const newPlayer1 = _this.state.player1 * -1;
@@ -174,6 +182,7 @@ class App extends Component {
         _this.forceUpdate();
       });
     });
+    }
 
   } // component did mount
 

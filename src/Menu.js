@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 import { signInWithPopup, signOut } from 'firebase/auth';
-import { ref, push } from 'firebase/database';
+import { ref, push, set } from 'firebase/database';
 import { database, auth, authprovider } from './firebase.config';
 import NewGame from './NewGame';
 import randomAnimal from './Animals';
@@ -10,7 +10,7 @@ class Menu extends Component {
     super(props);
 
     this.selectDraw = this.selectDraw.bind(this);
-    this.selectDraw = this.selectDraw.bind(this);
+    this.selectGuess = this.selectGuess.bind(this);
     this.closeMenu = this.closeMenu.bind(this);
     this.toggleSignIn = this.toggleSignIn.bind(this);
   }
@@ -39,15 +39,26 @@ class Menu extends Component {
   }
 
   setupGame(role) {
+    if (!this.props.uid) {
+      alert('Please sign in with Google before starting a game.');
+      return;
+    }
     const currentAnimal = randomAnimal();
-    const gameRef = push(ref(database), {
+    // Reserve a key, write the game, and only navigate once the write has
+    // completed (navigating immediately aborts the in-flight write).
+    const gameRef = push(ref(database));
+    const gameId = gameRef.key;
+
+    set(gameRef, {
       currentAnimal: currentAnimal,
       completed: false,
       player1: role,
       [this.props.uid]: role,
+    }).then(function() {
+      window.location = 'index.html?id=' + gameId;
+    }).catch(function(error) {
+      console.error('Could not create game', error);
     });
-
-    window.location = 'index.html?id=' + gameRef.key;
   }
 
   selectDraw() {
