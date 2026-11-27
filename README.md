@@ -69,6 +69,10 @@ Unit/component tests (offline):
 bun test
 ```
 
+They cover `NewGame` (renders), `Letters` (board build, guess assembly, drop
+guard) and `App` (joining, role-gated subscriptions, listener cleanup), with
+Firebase and Paper mocked.
+
 Emulator-backed tests (require the Firebase CLI and a **JDK 21+**):
 
 ```sh

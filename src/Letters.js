@@ -16,20 +16,24 @@ class Letters extends Component {
 
     this.drake = Dragula([], {
       revertOnSpill: true,
-      accepts: function(el, target) {
-        // A slot holds one tile; the pool always accepts. The occupant check
-        // must ignore the tile being dragged (it already sits in the slot).
-        if (target && target.classList && target.classList.contains('position')) {
-          const occupant = target.querySelector('.letter');
-          return !occupant || occupant === el;
-        }
-        return true;
-      },
+      accepts: this.canDrop.bind(this),
     });
 
     this.drake.on('drop', function() {
       _this.onDrop();
     });
+  }
+
+  // A slot holds one tile; the pool always accepts. The occupant check must
+  // ignore the tile being dragged: dragula re-evaluates `accepts` on release,
+  // by which point the dragged tile already sits in the slot. (Getting this
+  // wrong silently reverts every drop.)
+  canDrop(el, target) {
+    if (target && target.classList && target.classList.contains('position')) {
+      const occupant = target.querySelector('.letter');
+      return !occupant || occupant === el;
+    }
+    return true;
   }
 
   componentDidMount() {
