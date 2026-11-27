@@ -51,6 +51,11 @@ account*), which lets you play both seats from one browser.
 > The emulator connection lives in `src/firebase.config.js` and only activates
 > on `localhost` / `127.0.0.1`, so production builds are unaffected. (The
 > Functions emulator needs a **JDK 21+**.)
+>
+> The database namespace comes from `databaseURL`, and the emulator refuses a
+> namespace that is not a valid project id (lowercase letters, digits and
+> hyphens) — it answers `403` on the socket. Keep placeholders like
+> `your-project`, not `your_project`.
 
 ## Build
 

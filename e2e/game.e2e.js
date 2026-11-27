@@ -39,9 +39,21 @@ async function dragCentre(page, from, to) {
   await page.waitForTimeout(120);
 }
 
+// Surface browser errors in the test output (handy when CI fails).
+function watchConsole(page, label) {
+  page.on('console', (msg) => {
+    if (msg.type() === 'error' || msg.type() === 'warning') {
+      console.log(`[${label}:${msg.type()}] ${msg.text()}`);
+    }
+  });
+  page.on('pageerror', (err) => console.log(`[${label}:pageerror] ${err.message}`));
+}
+
 test('two players play a round and rematch', async ({ browser }) => {
   const alice = await (await browser.newContext()).newPage();
   const bob = await (await browser.newContext()).newPage();
+  watchConsole(alice, 'alice');
+  watchConsole(bob, 'bob');
   // Unique emails so repeated runs against a long-lived emulator don't collide.
   const run = Date.now().toString(36);
 

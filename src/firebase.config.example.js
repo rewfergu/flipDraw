@@ -10,13 +10,13 @@ import { connectAuthEmulator, getAuth, GoogleAuthProvider } from 'firebase/auth'
 import { connectDatabaseEmulator, getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
-  apiKey: 'YOUR_API_KEY',
-  authDomain: 'YOUR_PROJECT.firebaseapp.com',
-  databaseURL: 'https://YOUR_PROJECT.firebaseio.com',
-  projectId: 'YOUR_PROJECT',
-  storageBucket: 'YOUR_PROJECT.appspot.com',
-  messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-  appId: 'YOUR_APP_ID',
+  apiKey: 'YOUR-API-KEY',
+  authDomain: 'YOUR-PROJECT.firebaseapp.com',
+  databaseURL: 'https://YOUR-PROJECT.firebaseio.com',
+  projectId: 'YOUR-PROJECT',
+  storageBucket: 'YOUR-PROJECT.appspot.com',
+  messagingSenderId: 'YOUR-MESSAGING-SENDER-ID',
+  appId: 'YOUR-APP-ID',
 };
 
 const app = initializeApp(firebaseConfig);
