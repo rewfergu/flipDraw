@@ -6,17 +6,23 @@
     "$gameId": {
       ".read": "auth != null",
       // A game may be created (and only created) by a signed-in user who
-      // claims a role for themselves.
+      // claims a role for themselves. Everything authoritative is written by
+      // the Cloud Functions using the Admin SDK, which bypasses these rules.
       ".write": "auth != null && !data.exists() && newData.hasChild(auth.uid)",
 
+      // Server-owned: clients may read but not write.
       "currentAnimal": {
-        ".write": "auth != null && (!data.parent().exists() || data.parent().child(auth.uid).exists())",
+        ".write": false,
         ".validate": "newData.isString()"
       },
 
       "completed": {
-        ".write": "auth != null && (!data.parent().exists() || data.parent().child(auth.uid).exists())",
+        ".write": false,
         ".validate": "newData.isBoolean()"
+      },
+
+      "winner": {
+        ".write": false
       },
 
       "player1": {
@@ -40,6 +46,21 @@
           ".write": "auth != null && data.parent().parent().child(auth.uid).exists()",
           ".validate": "newData.hasChildren(['path'])"
         }
+      },
+
+      // The guesser proposes a guess here; checkGuess decides the outcome.
+      "guesses": {
+        ".read": "auth != null",
+        "$uid": {
+          ".write": "auth != null && $uid === auth.uid && data.parent().parent().child(auth.uid).val() === -1",
+          ".validate": "newData.isString()"
+        }
+      },
+
+      // A participant asks for a new round; startRematch does the work.
+      "rematch": {
+        ".write": "auth != null && data.parent().child(auth.uid).exists()",
+        ".validate": "newData.isBoolean()"
       },
 
       "$playerId": {

@@ -98,9 +98,11 @@ class Letters extends Component {
     if (source.children[0].innerHTML === target.getAttribute('data-letter')) {
       _this.solution.push(source.children[0].innerHTML);
 
-      if (_this.solution.join() === _this.selection.join()) {
-        this.props.gameOver();
-        console.log('***** GAME OVER *****');
+      if (_this.solution.length === _this.selection.length) {
+        // Propose the assembled word; the server (functions/checkGuess) decides
+        // whether it wins. The client never writes `completed` itself.
+        this.props.submitGuess(_this.solution.join(''));
+        console.log('***** GUESS SUBMITTED *****', _this.solution.join(''));
       }
 
       source.style.backgroundColor = '#4A5882';

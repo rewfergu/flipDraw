@@ -16,7 +16,8 @@
     "watch:css": "sass --no-source-map --watch src/scss/style.scss:src/css/style.css",
     "test": "bun test src",
     "test:watch": "bun test --watch src",
-    "test:rules": "firebase emulators:exec --only database --project demo-flipdraw \"FLIPDRAW_RULES=1 bun test ./test/rules.test.js\""
+    "test:rules": "firebase emulators:exec --only database --project demo-flipdraw \"FLIPDRAW_RULES=1 bun test ./test/rules.test.js\"",
+    "test:functions": "firebase emulators:exec --only database,functions --project demo-flipdraw \"FLIPDRAW_FUNCTIONS=1 bun test ./test/functions.test.js\""
   },
   "dependencies": {
     "animals": "^0.0.3",

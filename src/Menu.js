@@ -3,7 +3,6 @@ import { signInWithPopup, signOut } from 'firebase/auth';
 import { ref, push, set } from 'firebase/database';
 import { database, auth, authprovider } from './firebase.config';
 import NewGame from './NewGame';
-import randomAnimal from './Animals';
 
 class Menu extends Component {
   constructor(props) {
@@ -43,15 +42,12 @@ class Menu extends Component {
       alert('Please sign in with Google before starting a game.');
       return;
     }
-    const currentAnimal = randomAnimal();
-    // Reserve a key, write the game, and only navigate once the write has
-    // completed (navigating immediately aborts the in-flight write).
+    // Reserve a key and write the players. The word and round flags are owned
+    // by the server (functions/seedGame), so the client must not write them.
     const gameRef = push(ref(database));
     const gameId = gameRef.key;
 
     set(gameRef, {
-      currentAnimal: currentAnimal,
-      completed: false,
       player1: role,
       [this.props.uid]: role,
     }).then(function() {

@@ -14,7 +14,6 @@ import {
 import { onAuthStateChanged } from 'firebase/auth';
 import { database, auth } from './firebase.config';
 import Paper from 'paper';
-import randomAnimal from './Animals';
 
 import './css/style.css';
 
@@ -52,7 +51,7 @@ class App extends Component {
     this.openMenu = this.openMenu.bind(this);
     this.closeMenu = this.closeMenu.bind(this);
     this.resetGame = this.resetGame.bind(this);
-    this.gameOver = this.gameOver.bind(this);
+    this.submitGuess = this.submitGuess.bind(this);
     this.playAgain = this.playAgain.bind(this);
     this.signOut = this.signOut.bind(this);
 
@@ -326,12 +325,12 @@ class App extends Component {
     });
   }
 
-  gameOver() {
-    update(this.gameRef, {
-      completed: true,
-      paths: [],
-    });
-
+  // Propose a guess to the server; functions/checkGuess decides whether it wins.
+  submitGuess(word) {
+    if (!this.state.gameId || !this.state.uid) {
+      return;
+    }
+    set(ref(database, `${this.state.gameId}/guesses/${this.state.uid}`), word);
   }
 
   resetGame() {
@@ -345,36 +344,13 @@ class App extends Component {
     )    
   }
 
-  // Start a new round: swap the roles, choose a new word and clear the board.
-  // Runs once, driven by whoever clicks "Play Again".
+  // Ask the server to start a new round; functions/startRematch swaps the roles
+  // and picks a new word (the client is not allowed to write those fields).
   playAgain() {
-    if (this._rematching) {
+    if (!this.state.gameId) {
       return;
     }
-    this._rematching = true;
-    const _this = this;
-
-    get(this.gameRef).then(function(snapshot) {
-      const data = snapshot.val() || {};
-      const next = {
-        completed: false,
-        paths: null,
-        player1: (data.player1 || 1) * -1,
-        currentAnimal: randomAnimal(),
-      };
-      // Swap every player's role (values are 1 / -1; ignore metrics).
-      Object.keys(data).forEach(function(key) {
-        const value = data[key];
-        if (value === 1 || value === -1) {
-          next[key] = value * -1;
-        }
-      });
-      return update(_this.gameRef, next);
-    }).catch(function(error) {
-      console.error('Could not start a new round', error);
-    }).then(function() {
-      _this._rematching = false;
-    });
+    set(ref(database, `${this.state.gameId}/rematch`), true);
   }
 
   signOut() {
@@ -410,7 +386,7 @@ class App extends Component {
           { 
             // <DrawingBoard /> ↑↑↑↑↑↑↑↑
           }
-          { this.state.me === -1 && <Letters gameOver={this.gameOver} currentAnimal={this.state.currentAnimal} /> }
+          { this.state.me === -1 && <Letters submitGuess={this.submitGuess} currentAnimal={this.state.currentAnimal} /> }
         </div>
       </div>
       );

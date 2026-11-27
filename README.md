@@ -55,25 +55,43 @@ Unit/component tests (offline):
 bun test
 ```
 
-Database security-rules tests, against the Firebase Database emulator
-(requires the Firebase CLI and a **JDK 21+**):
+Emulator-backed tests (require the Firebase CLI and a **JDK 21+**):
 
 ```sh
-bun run test:rules
+bun run test:rules       # database security rules
+bun run test:functions   # server-side game logic (database + functions emulators)
 ```
 
-## Database rules
+## Security model
 
-Security rules live in [`database.rules.json`](database.rules.json) and are wired
-into [`firebase.json`](firebase.json). They require an authenticated user, let a
-player create a game only by claiming their own role, and let only the two
-participants read and write a game. Deploy them with:
+The client may only *propose* actions; the server owns the truth.
+
+**Security rules** ([`database.rules.json`](database.rules.json), wired into
+[`firebase.json`](firebase.json)) require an authenticated user, let a player
+create a game only by claiming their own role, and make the authoritative fields
+(`currentAnimal`, `completed`, `winner`) **read-only to clients**.
+
+**Cloud Functions** ([`functions/index.js`](functions/index.js)) write those
+fields with the Admin SDK:
+
+- `seedGame` — on a new game, picks the word and opens the round.
+- `checkGuess` — validates a guess written to `guesses/{uid}` and, on a match,
+  sets `completed`/`winner`. A client can no longer assert a win.
+- `startRematch` — on a `rematch` request, swaps the roles and picks a new word.
 
 ```sh
-firebase deploy --only database
+firebase deploy --only functions,database
 ```
 
-## Cloud Functions
+> Because the word and round flags are now server-owned, the app needs these
+> functions deployed (or the Functions emulator running) to play.
+
+**Known gap:** the guesser's client still receives the word via `currentAnimal`
+(and `Letters` encodes the answer in each slot's `data-letter`), so a determined
+player can still read the answer. Closing it means sending the guesser only
+scrambled `letters` and keeping the answer where only the drawer can read it.
+
+## Cloud Functions package
 
 `functions/` is a separate Firebase Cloud Functions package:
 
