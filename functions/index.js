@@ -10,7 +10,6 @@
 const { onValueCreated, onValueWritten } = require('firebase-functions/v2/database');
 const { logger } = require('firebase-functions');
 const { initializeApp } = require('firebase-admin/app');
-const { getDatabase } = require('firebase-admin/database');
 
 initializeApp();
 
@@ -57,13 +56,15 @@ exports.seedGame = onValueCreated('/{gameId}', async (event) => {
 
 // Validate a submitted guess. A client can only propose; the server decides.
 exports.checkGuess = onValueWritten('/{gameId}/guesses/{uid}', async (event) => {
-  const { gameId, uid } = event.params;
+  const { uid } = event.params;
   const guess = normalize(event.data.after.val());
   if (!guess) {
     return;
   }
 
-  const gameRef = getDatabase().ref(`/${gameId}`);
+  // Derive the reference from the event: the trigger may be bound to a
+  // different database instance (namespace) than the Admin default.
+  const gameRef = event.data.after.ref.parent.parent;
   const game = (await gameRef.get()).val();
   if (!game) {
     return;
@@ -76,7 +77,7 @@ exports.checkGuess = onValueWritten('/{gameId}/guesses/{uid}', async (event) => 
   }
 
   await gameRef.update({ completed: true, winner: uid, paths: null });
-  logger.info('correct guess', { gameId, uid });
+  logger.info('correct guess', { uid });
 });
 
 // Start a new round: swap the roles, pick a new word and clear the board.
@@ -86,7 +87,7 @@ exports.startRematch = onValueWritten('/{gameId}/rematch', async (event) => {
     return;
   }
 
-  const gameRef = getDatabase().ref(`/${gameId}`);
+  const gameRef = event.data.after.ref.parent;
   const game = (await gameRef.get()).val();
   if (!game || game.rematch !== true) {
     return; // already handled (trigger is at-least-once)

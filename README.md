@@ -31,12 +31,26 @@ Firebase console.
 
 ## Development
 
+Local development uses the Firebase emulators (the app connects to them
+automatically on `localhost`). Start them in one terminal:
+
+```sh
+firebase emulators:start --only auth,database,functions --project demo-flipdraw
+```
+
+Then start the app:
+
 ```sh
 bun run dev
 ```
 
-Compiles `src/scss` → `src/css` and starts the Bun dev server (with hot reload)
-at http://localhost:3000.
+Compiles `src/scss` → `src/css` and serves at http://localhost:3000. Sign in
+with the emulator's fake Google accounts ("Sign in with Google" → *Add new
+account*), which lets you play both seats from one browser.
+
+> The emulator connection lives in `src/firebase.config.js` and only activates
+> on `localhost` / `127.0.0.1`, so production builds are unaffected. (The
+> Functions emulator needs a **JDK 21+**.)
 
 ## Build
 

@@ -6,8 +6,8 @@
 //
 // `src/firebase.config.js` is git-ignored so your keys are never committed.
 import { initializeApp } from 'firebase/app';
-import { getAuth, GoogleAuthProvider } from 'firebase/auth';
-import { getDatabase } from 'firebase/database';
+import { connectAuthEmulator, getAuth, GoogleAuthProvider } from 'firebase/auth';
+import { connectDatabaseEmulator, getDatabase } from 'firebase/database';
 
 const firebaseConfig = {
   apiKey: 'YOUR_API_KEY',
@@ -27,3 +27,11 @@ export const authprovider = new GoogleAuthProvider();
 // Always let the user pick which Google account to sign in with (needed to
 // play as a second account on the same browser).
 authprovider.setCustomParameters({ prompt: 'select_account' });
+
+// Point the app at the local Firebase emulators during development.
+// (`firebase emulators:start`; harmless in production since the host won't be
+// localhost there.)
+if (typeof window !== 'undefined' && ['localhost', '127.0.0.1'].includes(window.location.hostname)) {
+  connectAuthEmulator(auth, 'http://127.0.0.1:9099', { disableWarnings: true });
+  connectDatabaseEmulator(database, '127.0.0.1', 9000);
+}

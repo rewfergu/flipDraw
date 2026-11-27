@@ -17,9 +17,11 @@ class Letters extends Component {
     this.drake = Dragula([], {
       revertOnSpill: true,
       accepts: function(el, target) {
-        // A slot holds one tile; the pool always accepts.
+        // A slot holds one tile; the pool always accepts. The occupant check
+        // must ignore the tile being dragged (it already sits in the slot).
         if (target && target.classList && target.classList.contains('position')) {
-          return !target.querySelector('.letter');
+          const occupant = target.querySelector('.letter');
+          return !occupant || occupant === el;
         }
         return true;
       },
