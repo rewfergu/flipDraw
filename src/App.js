@@ -108,6 +108,7 @@ class App extends Component {
         })
 
         if (_this.state.gameId) {
+          _this.watchGame(user);
           _this.setupGameFromFirebase(user);
         }
       } else {
@@ -140,51 +141,53 @@ class App extends Component {
     });
 
 
+    // Round over flag. Roles and the word are watched separately in
+    // watchGame(); a rematch is applied by whoever clicks "Play Again".
     onValue(ref(database, `${this.state.gameId}/completed`), function(snapshot) {
-      _this.setState({completed: snapshot.val()});
-      
+      _this.setState({ completed: !!snapshot.val() });
+
       if (snapshot.val() === true) {
-        // game over
-        // Wait until auth/role state exists before rewriting the game
-        // (this handler fires on reload before setupGameFromFirebase resolves).
-        if (!_this.state.uid || _this.state.me == null) {
-          return;
-        }
-
-      const currentAnimal = randomAnimal();
-      const newPlayer1 = _this.state.player1 * -1;
-
-      _this.setState({
-        me: _this.state.me * -1,
-      });
-
-
-      update(_this.gameRef, {
-        [_this.state.uid]: _this.state.me,
-        player1: newPlayer1,
-        currentAnimal
-      });
-
-      Paper.project.activeLayer.children = [];
-      Paper.view.update();
-        
-      } else {
-        // game not over
-        _this.state.me === 1 ? _this.setupDrawPlayer() : null;
+        // Round over: clear the local canvas. The next round starts blank.
+        Paper.project.activeLayer.children = [];
+        Paper.view.update();
       }
     });
 
-    // get current word from firebase
+    // Current word (changes at the start of every round).
     onValue(ref(database, `${this.state.gameId}/currentAnimal`), function(snapshot) {
-      _this.setState({
-        currentAnimal: snapshot.val()
-      }, function() {
-        _this.forceUpdate();
-      });
+      _this.setState({ currentAnimal: snapshot.val() });
     });
     }
 
   } // component did mount
+
+  // Watch the live game state so a rematch (which swaps roles) is reflected
+  // for both players.
+  watchGame(user) {
+    const _this = this;
+
+    onValue(ref(database, `${this.state.gameId}/player1`), function(snapshot) {
+      if (snapshot.val() != null) {
+        _this.setState({ player1: snapshot.val() });
+      }
+    });
+
+    onValue(ref(database, `${this.state.gameId}/${user.uid}`), function(snapshot) {
+      const role = snapshot.val();
+      if (role !== 1 && role !== -1) {
+        return;
+      }
+      _this.setState({ me: role });
+      if (role === 1) {
+        // I'm the draw player for this round.
+        if (!_this.drawToolReady) {
+          _this.setupDrawPlayer();
+        }
+      } else {
+        _this.drawToolReady = false;
+      }
+    });
+  }
 
   setupGameFromFirebase(user) {
     const _this = this;
@@ -196,8 +199,7 @@ class App extends Component {
       let myRole = gameData[user.uid];
 
       if (myRole === 1) {
-        // I'm the draw player
-        _this.setupDrawPlayer();
+        // I'm the draw player — watchGame() sets up the tool for role 1.
       } else if (myRole === -1) {
         // I'm the guess player
       } else {
@@ -225,6 +227,7 @@ class App extends Component {
 
   setupDrawPlayer() {
     const _this = this;
+    _this.drawToolReady = true;
     // var path = $(this).attr('href');
     // path += '&player=guess';
     // $(this).attr('href', path);
@@ -319,9 +322,35 @@ class App extends Component {
     )    
   }
 
+  // Start a new round: swap the roles, choose a new word and clear the board.
+  // Runs once, driven by whoever clicks "Play Again".
   playAgain() {
-    update(this.gameRef, {
-      completed: false,
+    if (this._rematching) {
+      return;
+    }
+    this._rematching = true;
+    const _this = this;
+
+    get(this.gameRef).then(function(snapshot) {
+      const data = snapshot.val() || {};
+      const next = {
+        completed: false,
+        paths: null,
+        player1: (data.player1 || 1) * -1,
+        currentAnimal: randomAnimal(),
+      };
+      // Swap every player's role (values are 1 / -1; ignore metrics).
+      Object.keys(data).forEach(function(key) {
+        const value = data[key];
+        if (value === 1 || value === -1) {
+          next[key] = value * -1;
+        }
+      });
+      return update(_this.gameRef, next);
+    }).catch(function(error) {
+      console.error('Could not start a new round', error);
+    }).then(function() {
+      _this._rematching = false;
     });
   }
 
