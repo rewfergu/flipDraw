@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css?family=Walter+Turncoat');
-$font: 'Walter Turncoat';
-@import 'menu';
-@import 'letters';
+@use 'variables' as *;
+@use 'menu';
+@use 'letters';
+
 body {
   margin: 0;
   background: #ccc;

@@ -1,14 +1,15 @@
 import React, { Component } from 'react';
+import { signInWithPopup, signOut } from 'firebase/auth';
+import { ref, push, set } from 'firebase/database';
 import { database, auth, authprovider } from './firebase.config';
 import NewGame from './NewGame';
-import randomAnimal from './Animals';
 
 class Menu extends Component {
   constructor(props) {
     super(props);
 
     this.selectDraw = this.selectDraw.bind(this);
-    this.selectDraw = this.selectDraw.bind(this);
+    this.selectGuess = this.selectGuess.bind(this);
     this.closeMenu = this.closeMenu.bind(this);
     this.toggleSignIn = this.toggleSignIn.bind(this);
   }
@@ -18,9 +19,7 @@ class Menu extends Component {
     if (!auth.currentUser) {
       console.log('current auth', auth.currentUser);
 
-      authprovider.addScope('https://www.googleapis.com/auth/plus.login');
-
-      auth.signInWithPopup(authprovider).then(function(result) {
+      signInWithPopup(auth, authprovider).then(function(result) {
         // This gives you a Google Access Token. You can use it to access the Google API.
         // var token = result.credential.accessToken;
       }).catch(function(error) {
@@ -34,29 +33,28 @@ class Menu extends Component {
     } else {
       // signout
       _this.props.signOut();
-      auth.signOut();
+      signOut(auth);
     }
   }
 
   setupGame(role) {
-    // const _this = this;
-    const currentAnimal = randomAnimal();
-    const gameRef = database.ref().push({
-      currentAnimal: currentAnimal,
-      completed: false,
+    if (!this.props.uid) {
+      alert('Please sign in with Google before starting a game.');
+      return;
+    }
+    // Reserve a key and write the players. The word and round flags are owned
+    // by the server (functions/seedGame), so the client must not write them.
+    const gameRef = push(ref(database));
+    const gameId = gameRef.key;
+
+    set(gameRef, {
       player1: role,
       [this.props.uid]: role,
+    }).then(function() {
+      window.location = 'index.html?id=' + gameId;
+    }).catch(function(error) {
+      console.error('Could not create game', error);
     });
-
-    // gameRef.set({
-    //   currentAnimal: currentAnimal,
-    //   completed: false,
-    //   player1: role,
-    //   [this.props.uid]: role,
-    // });
-
-    var path = 'index.html?id=' + gameRef.key;
-    window.location = path;
   }
 
   selectDraw() {

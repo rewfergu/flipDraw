@@ -1,0 +1,189 @@
+// Integration test for the server-side game logic in functions/index.js.
+//
+// Runs against the Database + Functions emulators (a JDK 21+ is required), via:
+//   bun run test:functions
+//
+// Skipped unless FLIPDRAW_FUNCTIONS=1, so a plain `bun test` stays offline.
+import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { readFileSync } from 'node:fs';
+import { initializeTestEnvironment } from '@firebase/rules-unit-testing';
+import { get, ref, set, update } from 'firebase/database';
+
+const runFunctions = process.env.FLIPDRAW_FUNCTIONS === '1';
+const fnTest = runFunctions ? test : test.skip;
+
+let testEnv;
+
+if (runFunctions) {
+  beforeAll(async () => {
+    testEnv = await initializeTestEnvironment({
+      projectId: 'demo-flipdraw',
+      database: {
+        rules: readFileSync('database.rules.json', 'utf8'),
+        host: '127.0.0.1',
+        port: 9000,
+      },
+    });
+  });
+
+  afterAll(async () => {
+    await testEnv.cleanup();
+  });
+}
+
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+
+// Polls `readValue` until `predicate` holds (Cloud Functions are asynchronous).
+async function waitFor(readValue, predicate, label, timeoutMs = 15000) {
+  const start = Date.now();
+  for (;;) {
+    const value = await readValue();
+    if (predicate(value)) {
+      return value;
+    }
+    if (Date.now() - start > timeoutMs) {
+      throw new Error(`timed out waiting for ${label}; last value = ${JSON.stringify(value)}`);
+    }
+    await sleep(150);
+  }
+}
+
+function dbAs(uid) {
+  return testEnv.authenticatedContext(uid).database();
+}
+
+describe('server-side game logic (Cloud Functions)', () => {
+  fnTest('seedGame picks a word and opens the round', async () => {
+    const alice = dbAs('seed-alice');
+    await set(ref(alice, 'seed-game'), { player1: 1, 'seed-alice': 1 });
+
+    const word = await waitFor(
+      () => get(ref(alice, 'seed-game/currentAnimal')).then((s) => s.val()),
+      (v) => typeof v === 'string' && v.length > 0,
+      'seeded word',
+    );
+
+    const letters = (await get(ref(alice, 'seed-game/letters'))).val();
+
+    expect(typeof word).toBe('string');
+    expect(typeof letters).toBe('string');
+    expect(letters.length).toBe(word.length);
+    expect((await get(ref(alice, 'seed-game/completed'))).val()).toBe(false);
+  });
+
+  fnTest('checkGuess rejects a wrong guess and accepts the right one', async () => {
+    const alice = dbAs('guess-alice');
+    await set(ref(alice, 'guess-game'), { player1: 1, 'guess-alice': 1 });
+    const answer = await waitFor(
+      () => get(ref(alice, 'guess-game/currentAnimal')).then((s) => s.val()),
+      (v) => typeof v === 'string' && v.length > 0,
+      'word',
+    );
+
+    const bob = dbAs('guess-bob');
+    await update(ref(bob, 'guess-game'), { 'guess-bob': -1 }); // bob joins as guesser
+
+    // A wrong guess is cleared and the round stays open.
+    await set(ref(bob, 'guess-game/guesses/guess-bob'), 'definitely-not-the-word');
+    await waitFor(
+      () => get(ref(bob, 'guess-game/guesses/guess-bob')).then((s) => s.val()),
+      (v) => v == null,
+      'wrong guess cleared',
+    );
+    expect((await get(ref(bob, 'guess-game/completed'))).val()).toBe(false);
+
+    // The right guess wins, decided by the server.
+    await set(ref(bob, 'guess-game/guesses/guess-bob'), answer);
+    await waitFor(
+      () => get(ref(bob, 'guess-game/completed')).then((s) => s.val()),
+      (v) => v === true,
+      'completed',
+    );
+    expect((await get(ref(bob, 'guess-game/winner'))).val()).toBe('guess-bob');
+    // ... and the winning word is not left behind in a broadly-readable node.
+    expect((await get(ref(bob, 'guess-game/guesses/guess-bob'))).val()).toBe(null);
+  });
+
+  fnTest('startRematch swaps the roles, picks a new word and clears the board', async () => {
+    const alice = dbAs('rematch-alice');
+    await set(ref(alice, 'rematch-game'), { player1: 1, 'rematch-alice': 1 });
+    const word = await waitFor(
+      () => get(ref(alice, 'rematch-game/currentAnimal')).then((s) => s.val()),
+      (v) => typeof v === 'string' && v.length > 0,
+      'word',
+    );
+
+    const bob = dbAs('rematch-bob');
+    await update(ref(bob, 'rematch-game'), { 'rematch-bob': -1 });
+
+    // Finish the round first: a rematch may only be requested once it is over.
+    await set(ref(bob, 'rematch-game/guesses/rematch-bob'), word);
+    await waitFor(
+      () => get(ref(alice, 'rematch-game/completed')).then((s) => s.val()),
+      (v) => v === true,
+      'completed',
+    );
+
+    await set(ref(bob, 'rematch-game/rematch'), true);
+
+    await waitFor(
+      () => get(ref(alice, 'rematch-game/rematch-alice')).then((s) => s.val()),
+      (v) => v === -1,
+      'alice flipped to guesser',
+    );
+    // The roles must have flipped exactly once (not back and forth).
+    expect((await get(ref(bob, 'rematch-game/rematch-bob'))).val()).toBe(1);
+    expect((await get(ref(alice, 'rematch-game/rematch'))).val()).toBe(null);
+    expect((await get(ref(alice, 'rematch-game/completed'))).val()).toBe(false);
+  }, 30_000);
+
+  fnTest('seedGame ignores a word and letters injected at creation', async () => {
+    const alice = dbAs('inject-alice');
+
+    // A node-level write grant cascades to children, so a creator *can* inject
+    // authoritative fields at creation — the server must discard them.
+    await set(ref(alice, 'inject-game'), {
+      player1: 1,
+      'inject-alice': 1,
+      currentAnimal: 'hackedword',
+      letters: 'hackedword',
+      winner: 'inject-alice',
+    });
+
+    const word = await waitFor(
+      () => get(ref(alice, 'inject-game/currentAnimal')).then((s) => s.val()),
+      (v) => typeof v === 'string' && v.length > 0 && v !== 'hackedword',
+      'a server-picked word',
+    );
+
+    expect(word).not.toBe('hackedword');
+    expect((await get(ref(alice, 'inject-game/letters'))).val()).not.toBe('hackedword');
+    expect((await get(ref(alice, 'inject-game/winner'))).val()).toBe(null);
+  });
+
+  fnTest('the word is secret to the guesser, but the letters are not', async () => {
+    const alice = dbAs('secret-alice');
+    await set(ref(alice, 'secret-game'), { player1: 1, 'secret-alice': 1 });
+    await waitFor(
+      () => get(ref(alice, 'secret-game/currentAnimal')).then((s) => s.val()),
+      (v) => typeof v === 'string' && v.length > 0,
+      'word',
+    );
+
+    const bob = dbAs('secret-bob');
+    await update(ref(bob, 'secret-game'), { 'secret-bob': -1 }); // bob is the guesser
+
+    // The guesser can read the scrambled letters ...
+    const letters = (await get(ref(bob, 'secret-game/letters'))).val();
+    expect(typeof letters).toBe('string');
+
+    // ... but not the word itself.
+    let denied = false;
+    try {
+      await get(ref(bob, 'secret-game/currentAnimal'));
+    } catch (error) {
+      denied = true;
+    }
+    expect(denied).toBe(true);
+  });
+});

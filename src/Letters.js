@@ -1,154 +1,111 @@
 import React, { Component } from 'react';
-// import Paper from 'paper';
 import Dragula from 'react-dragula';
 
-// import 'jquery-ui';
-// import 'jquery-ui-touch-punch-c';
-
+// The guesser's board. It is built from `props.letters` — a scrambled string of
+// the word's letters — and the slots carry no positional hint, so the answer is
+// never present in the client. The assembled word is submitted to the server,
+// which decides whether it is correct.
 class Letters extends Component {
   constructor(props) {
     super(props);
 
     const _this = this;
 
-    this.selection = null;
-    this.currentPosition = null;
-    this.jumble = [];
-    this.solution = [];
     this.letterPool = null;
     this.word = null;
+
     this.drake = Dragula([], {
       revertOnSpill: true,
-      accepts: function(el, target, source, sibling) {
-        return _this.checkPosition(el, target);
-      }
+      accepts: this.canDrop.bind(this),
     });
 
-    this.drake.on('drop', function(el, target) {
-      _this.submitPosition(el, target);
+    this.drake.on('drop', function() {
+      _this.onDrop();
     });
   }
 
-  componentWillMount() {
-
-
-    // let getWidth = this.props.gameRef.child('drawWidth').once('value').then(function(data) {
-    //   return data.val();
-    // });
-    // let getHeight = this.props.gameRef.child('drawHeight').once('value').then(function(data) {
-    //   return data.val();
-    // });
-
-    // Promise.all([getHeight, getWidth]).then(values => {
-    //   let drawWidth = values[1];
-    //   let drawHeight = values[0];
-    //   // const aspectRatio = drawWidth / drawHeight;
-
-    //   console.log('values', values);
-    //   console.log('drawWidth', values[0]);
-    //   console.log('drawHeight', values[1]);
-
-    //   // scale canvas if necessary
-    //   if (drawHeight > window.canvas.offsetHeight) {
-    //     const imageDiff = window.canvas.offsetHeight / drawHeight;
-    //     Paper.view._matrix.scale(imageDiff);
-    //     Paper.view.update();
-    //   }
-    // });
+  // A slot holds one tile; the pool always accepts. The occupant check must
+  // ignore the tile being dragged: dragula re-evaluates `accepts` on release,
+  // by which point the dragged tile already sits in the slot. (Getting this
+  // wrong silently reverts every drop.)
+  canDrop(el, target) {
+    if (target && target.classList && target.classList.contains('position')) {
+      const occupant = target.querySelector('.letter');
+      return !occupant || occupant === el;
+    }
+    return true;
   }
 
   componentDidMount() {
-    const _this = this;
-
     this.letterPool = document.getElementById('letter-pool');
     this.word = document.getElementById('word');
-
-    this.drawLetters();
+    this.buildBoard();
   }
 
-  drawLetters() {
-    this.selection = this.props.currentAnimal.split('');
-    console.log('current Animal', this.props.currentAnimal);
+  componentDidUpdate(prevProps) {
+    // Rebuild only when the letters actually change (new word / new round).
+    if (prevProps.letters !== this.props.letters) {
+      this.buildBoard();
+    }
+  }
 
+  buildBoard() {
     const _this = this;
+    const letters = String(this.props.letters || '');
+
     this.letterPool.innerHTML = '';
     this.word.innerHTML = '';
-    this.solution = [];
-    this.jumble = [];
 
-    // loop over the array and print out drop containers
-    // push each character to a new array that we can shuffle
-    this.selection.forEach(function(index) {
-      var tile = document.createElement('div');
-      tile.classList.add('position');
-      tile.setAttribute('droppable', true);
-      tile.setAttribute('data-letter', index);
-      _this.drake.containers.push(tile);
-      _this.word.appendChild(tile);
-      _this.jumble.push(index);
+    // One empty slot per letter.
+    for (let i = 0; i < letters.length; i++) {
+      const slot = document.createElement('div');
+      slot.classList.add('position');
+      _this.drake.containers.push(slot);
+      _this.word.appendChild(slot);
+    }
+
+    // The tiles, shuffled for display only.
+    const tiles = letters.split('');
+    for (let i = tiles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [tiles[i], tiles[j]] = [tiles[j], tiles[i]];
+    }
+    tiles.forEach(function(letter) {
+      const tile = document.createElement('div');
+      const span = document.createElement('span');
+      tile.classList.add('letter');
+      tile.style.backgroundColor = `hsl(${Math.random() * 360 + 80}, 20%, 50%)`;
+      span.appendChild(document.createTextNode(letter));
+      tile.appendChild(span);
+      _this.letterPool.appendChild(tile);
     });
 
-    // shuffle the characters in the new word array
-    this.jumble
-      .sort(function() {
-        return 0.5 - Math.random();
-      })
-      .forEach(function(index) {
-        var tile = document.createElement('div');
-        var span = document.createElement('span');
-        var text = document.createTextNode(index);
-
-        // print out characters on screen;
-        tile.classList.add('letter');
-        tile.style.backgroundColor = `hsl(${Math.random() * 360 + 80}, 20%, 50%)`;
-        tile.appendChild(span);
-        span.appendChild(text);
-        _this.letterPool.appendChild(tile);
-      });
-
-    this.drake.containers.push(document.getElementById('letter-pool'));
+    _this.drake.containers.push(_this.letterPool);
   }
 
-  componentWillUpdate() {
-    this.drawLetters();
+  // The letters currently placed in the slots, in order.
+  currentGuess() {
+    const slots = Array.prototype.slice.call(this.word.querySelectorAll('.position'));
+    return slots.reduce(function(guess, slot) {
+      const tile = slot.querySelector('.letter');
+      return guess + (tile ? tile.textContent : '');
+    }, '');
   }
 
-  // check if the letter tile is put in the right place
-  // return true enables dragula to drop the letter
-  checkPosition(source, target) {
-    if (source.children[0].innerHTML === target.getAttribute('data-letter')) {
-      return true;
-    } else {
-      return false;
+  onDrop() {
+    const slots = Array.prototype.slice.call(this.word.querySelectorAll('.position'));
+    const filled = slots.length > 0 && slots.every(function(slot) {
+      return !!slot.querySelector('.letter');
+    });
+    if (!filled) {
+      return;
     }
+
+    const guess = this.currentGuess();
+    // Propose the word; the server (functions/checkGuess) decides if it wins.
+    this.props.submitGuess(guess);
+    console.log('***** GUESS SUBMITTED *****', guess);
   }
-
-  submitPosition(source, target) {
-    const _this = this;
-
-    if (source.children[0].innerHTML === target.getAttribute('data-letter')) {
-      _this.solution.push(source.children[0].innerHTML);
-
-      if (_this.solution.join() === _this.selection.join()) {
-        this.props.gameOver();
-        console.log('***** GAME OVER *****');
-      }
-
-      source.style.backgroundColor = '#4A5882';
-      source.classList.add('position--correct');
-
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  dragulaDecorator(componentBackingInstance) {
-    if (componentBackingInstance) {
-      let options = { };
-      Dragula([componentBackingInstance], options);
-    }
-  };
 
   render() {
     return (
@@ -156,7 +113,7 @@ class Letters extends Component {
         <div id="letter-pool" className="letter-pool"></div>
         <div id="word" className="word"></div>
       </div>
-      );
+    );
   }
 }
 
