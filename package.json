@@ -17,7 +17,8 @@
     "test": "bun test src",
     "test:watch": "bun test --watch src",
     "test:rules": "firebase emulators:exec --only database --project demo-flipdraw \"FLIPDRAW_RULES=1 bun test ./test/rules.test.js\"",
-    "test:functions": "firebase emulators:exec --only database,functions --project demo-flipdraw \"FLIPDRAW_FUNCTIONS=1 bun test ./test/functions.test.js\""
+    "test:functions": "firebase emulators:exec --only database,functions --project demo-flipdraw \"FLIPDRAW_FUNCTIONS=1 bun test ./test/functions.test.js\"",
+    "test:e2e": "playwright test"
   },
   "dependencies": {
     "animals": "^0.0.3",
@@ -31,6 +32,7 @@
   "devDependencies": {
     "@firebase/rules-unit-testing": "^6.0.0",
     "@happy-dom/global-registrator": "^21.0.4",
+    "@playwright/test": "^1.65.1",
     "sass": "^1.108.2"
   }
 }

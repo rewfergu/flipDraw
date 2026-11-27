@@ -76,6 +76,16 @@ bun run test:rules       # database security rules
 bun run test:functions   # server-side game logic (database + functions emulators)
 ```
 
+End-to-end test (Playwright drives two players through a full round + rematch;
+it starts the dev server and the emulators itself, using the installed Chrome):
+
+```sh
+bun run test:e2e
+```
+
+All of the above run in CI on every push and pull request
+([`.github/workflows/ci.yml`](.github/workflows/ci.yml)).
+
 ## Security model
 
 The client may only *propose* actions; the server owns the truth.

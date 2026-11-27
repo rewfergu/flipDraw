@@ -115,7 +115,9 @@ class App extends Component {
           auth: true,
           displayName: user.displayName,
           uid: user.uid,
-          userImage: user.photoURL
+          userImage: user.photoURL,
+          // Signing in on an invite URL should reveal the game, not the menu.
+          showMenu: !_this.state.gameId
         })
 
         if (_this.state.gameId) {
